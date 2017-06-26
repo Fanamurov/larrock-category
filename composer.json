@@ -1,0 +1,21 @@
+{
+    "name": "fanamurov/larrock-category",
+    "description": "Category component for larrockCMS",
+    "type": "library",
+    "license": "BSD",
+    "authors": [
+        {
+            "name": "Alexandr Fanamurov",
+            "email": "fanamurov@ya.ru"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Larrock\\ComponentCategory\\": "src",
+            "Larrock\\ComponentCategory\\Models\\": "src/Models"
+        }
+    },
+    "require": {
+        "fanamurov/larrock-core": "^0.1"
+    }
+}
