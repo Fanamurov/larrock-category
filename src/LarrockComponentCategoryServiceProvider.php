@@ -14,10 +14,6 @@ class LarrockComponentCategoryServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->loadViewsFrom(__DIR__.'/views', 'larrock');
-
-        $this->publishes([
-            __DIR__.'/views' => base_path('resources/views/larrock')
-        ]);
     }
 
     /**
@@ -48,5 +44,9 @@ class LarrockComponentCategoryServiceProvider extends ServiceProvider
         $this->publishes([
             $migrations
         ], 'migrations');
+
+        $this->publishes([
+            __DIR__.'/views' => base_path('resources/views/larrock')
+        ], 'views');
     }
 }
