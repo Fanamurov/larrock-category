@@ -3,7 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 
-class CreateLarrockCategoryLinkTable extends Migration {
+class CreateCategoryLinkTable extends Migration {
 
 	/**
 	 * Run the migrations.
