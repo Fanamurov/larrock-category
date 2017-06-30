@@ -12,6 +12,7 @@ use JsValidator;
 use Lang;
 use Larrock\ComponentCategory\Models\Category;
 use Larrock\Core\Component;
+use Larrock\Core\Middleware\SaveAdminPluginsData;
 use Redirect;
 use Validator;
 use View;
@@ -72,10 +73,10 @@ class AdminCategoryController extends Controller
 		$data = new Category();
 		$data->fill($request->all());
         foreach ($this->config->rows as $row){
-            if(get_class($row) === 'App\Helpers\FormBuilder\FormCheckbox'){
+            if(get_class($row) === 'Larrock\Core\Helpers\FormBuilder\FormCheckbox'){
                 $data->{$row->name} = $request->input($row->name, NULL);
             }
-            if(get_class($row) === 'App\Helpers\FormBuilder\FormDate'){
+            if(get_class($row) === 'Larrock\Core\Helpers\FormBuilder\FormDate'){
                 $data->{$row->name} = $request->input('date', date('Y-m-d'));
             }
         }
@@ -161,7 +162,7 @@ class AdminCategoryController extends Controller
 			}
 		});
 
-		return view('admin.admin-builder.edit', $data);
+		return view('larrock::admin.admin-builder.edit', $data);
     }
 
 	/**
@@ -183,27 +184,34 @@ class AdminCategoryController extends Controller
 
 		$data->fill($request->all());
         foreach ($this->config->rows as $row){
-            if(get_class($row) === 'App\Helpers\FormBuilder\FormCheckbox'){
-                $data->{$row->name} = $request->input($row->name, NULL);
-            }
-            if(get_class($row) === 'App\Helpers\FormBuilder\FormDate'){
-                $data->{$row->name} = $request->input('date', date('Y-m-d'));
+            if(in_array($row->name, $data->getFillable())){
+                if(get_class($row) === 'Larrock\Core\Helpers\FormBuilder\FormCheckbox'){
+                    $data->{$row->name} = $request->input($row->name, NULL);
+                }
+                if(get_class($row) === 'Larrock\Core\Helpers\FormBuilder\FormDate'){
+                    $data->{$row->name} = $request->input('date', date('Y-m-d'));
+                }
             }
         }
 		$data->user_id = $request->user()->id;
 
-		$parent = Category::whereId($data->parent)->first();
-		$data->level = $parent->level +1;
+		if($parent = Category::whereId($data->parent)->first()){
+            $data->level = $parent->level +1;
+        }else{
+		    $data->parent = NULL;
+		    $data->level = 1;
+        }
 
 		if($data->save()){
             $Component = new CategoryComponent();
             $Component->actionAttach($this->config, $data, $request);
+            $Component->savePluginSeoData($request);
 
-            Alert::add('successAdmin', Lang::get('apps.update.success', ['name' => $request->input('title')]))->flash();
+            Alert::add('successAdmin', Lang::get('larrock::apps.update.success', ['name' => $request->input('title')]))->flash();
 			\Cache::flush();
 			return back();
 		}
-        Alert::add('warning', Lang::get('apps.update.nothing', ['name' => $request->input('title')]))->flash();
+        Alert::add('warning', Lang::get('larrock::apps.update.nothing', ['name' => $request->input('title')]))->flash();
 
 		return back()->withInput();
     }
@@ -225,7 +233,7 @@ class AdminCategoryController extends Controller
                 $Component = new CategoryComponent();
                 $Component->actionAttach($this->config, $data, $request);
 
-                Alert::add('successAdmin', Lang::get('apps.delete.success', ['name' => $name]))->flash();
+                Alert::add('successAdmin', Lang::get('larrock::apps.delete.success', ['name' => $name]))->flash();
             }else{
                 Alert::add('errorAdmin', 'Раздел не удален')->flash();
             }

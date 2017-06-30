@@ -45,7 +45,7 @@ class LarrockComponentCategoryServiceProvider extends ServiceProvider
         $this->publishes($migrations, 'migrations');
 
         $this->publishes([
-            __DIR__.'/views' => base_path('resources/views/larrock')
+            __DIR__.'/views' => base_path('resources/views/vendor/larrock')
         ], 'views');
     }
 }
