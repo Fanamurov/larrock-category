@@ -145,6 +145,21 @@ class Category extends Model implements HasMediaConversions
 		return $this->title;
 	}
 
+    public function getGetParentSeoTitleAttribute()
+    {
+        if($get_seo = Seo::whereIdConnect($this->parent)->first()){
+            return $get_seo->seo_title;
+        }
+        if($get_parent = Category::whereId($this->parent)->first()){
+            if($get_seo = Seo::whereUrlConnect($get_parent->url)->first()){
+                return $get_seo->seo_title;
+            }else{
+                return $get_parent->title;
+            }
+        }
+        return $this->title;
+    }
+
 	public function get_child()
 	{
 		return $this->hasMany(Category::class, 'parent', 'id')->orderBy('position', 'DESC');
@@ -239,10 +254,6 @@ class Category extends Model implements HasMediaConversions
 	{
 		return $this->belongsToMany(Catalog::class, 'category_catalog', 'category_id', 'catalog_id')->whereActive(1)->orderBy('position', 'DESC')->orderBy('cost', 'DESC');
 	}
-    public function get_tovarsActiveRazmer()
-    {
-        return $this->belongsToMany(Catalog::class, 'category_catalog', 'category_id', 'catalog_id')->whereActive(1)->orderBy('razmer_w', 'ASC');
-    }
 
 	public function get_tovarsAlias()
 	{
