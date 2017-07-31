@@ -17,7 +17,7 @@ class CategoryComponent extends Component
         $this->name = $this->table = 'category';
         $this->title = 'Разделы';
         $this->description = 'Структура сайта';
-        $this->model = Category::class;
+        $this->model = $this->model = \config('larrock.models.category', Category::class);
         $this->addRows()->addPositionAndActive()->isSearchable()->addPlugins();
     }
 

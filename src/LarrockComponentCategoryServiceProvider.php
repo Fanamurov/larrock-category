@@ -25,7 +25,10 @@ class LarrockComponentCategoryServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->make(CategoryComponent::class);
+        $this->app->singleton('larrockcategory', function() {
+            $class = config('larrock.components.category', CategoryComponent::class);
+            return new $class;
+        });
 
         $timestamp = date('Y_m_d_His', time());
         $timestamp_after = date('Y_m_d_His', time()+10);

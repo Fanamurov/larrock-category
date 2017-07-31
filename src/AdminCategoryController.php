@@ -6,12 +6,11 @@ use Alert;
 use Breadcrumbs;
 use Cache;
 use Illuminate\Http\Request;
-
+use Larrock\Core\Component;
 use App\Http\Controllers\Controller;
 use JsValidator;
 use Lang;
-use Larrock\ComponentCategory\Models\Category;
-use Larrock\Core\Component;
+use Larrock\ComponentCategory\Facades\LarrockCategory;
 use Larrock\Core\Middleware\SaveAdminPluginsData;
 use Redirect;
 use Validator;
@@ -19,17 +18,15 @@ use View;
 
 class AdminCategoryController extends Controller
 {
-	protected $config;
 	protected $current_user;
 
 	public function __construct()
 	{
-        $Component = new CategoryComponent();
-        $this->config = $Component->shareConfig();
+        LarrockCategory::shareConfig();
 
         Breadcrumbs::setView('larrock::admin.breadcrumb.breadcrumb');
-        Breadcrumbs::register('admin.'. $this->config->name .'.index', function($breadcrumbs){
-            $breadcrumbs->push($this->config->title, '/admin/'. $this->config->name);
+        Breadcrumbs::register('admin.'. LarrockCategory::getName() .'.index', function($breadcrumbs){
+            $breadcrumbs->push(LarrockCategory::getTitle(), '/admin/'. LarrockCategory::getName());
         });
 	}
 
@@ -42,9 +39,9 @@ class AdminCategoryController extends Controller
 	 */
 	public function create(Request $request)
     {
-        if( !$category = Category::whereType('feed')->first()){
-            Category::create(['title' => 'Новый материал', 'url' => str_slug('Новый материал')]);
-            $category = Category::whereType('feed')->first();
+        if( !$category = LarrockCategory::getModel()->whereType('feed')->first()){
+            LarrockCategory::create(['title' => 'Новый материал', 'url' => str_slug('Новый материал')]);
+            $category = LarrockCategory::getModel()->whereType('feed')->first();
         }
         Cache::flush();
         $test = Request::create('/admin/category', 'POST', [
@@ -65,13 +62,12 @@ class AdminCategoryController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), $this->config->valid);
+        $validator = Validator::make($request->all(), LarrockCategory::getValid());
         if($validator->fails()){
             return back()->withInput($request->except('password'))->withErrors($validator);
         }
 
-		$data = new Category();
-		$data->fill($request->all());
+        $data = LarrockCategory::getModel()->fill($request->all());
         foreach ($this->config->rows as $row){
             if(get_class($row) === 'Larrock\Core\Helpers\FormBuilder\FormCheckbox'){
                 $data->{$row->name} = $request->input($row->name, NULL);
@@ -84,19 +80,19 @@ class AdminCategoryController extends Controller
 		$data->user_id = $request->user()->id;
 
 		if($request->input('parent') !== 0){
-			if($get_parent = Category::find($request->input('parent'))->first()){
+			if($get_parent = LarrockCategory::getModel()->find($request->input('parent'))->first()){
 				$data->level = (int) $get_parent->level +1;
 			}
 		}
 
 		//Проверяем уникальность url
-        if(Category::whereUrl($data->url)->first()){
+        if(LarrockCategory::getModel()->whereUrl($data->url)->first()){
             $data->url = $data->url .'-'. mt_rand(0,9999);
         }
 
 		if($data->save()){
 			Alert::add('successAdmin', 'Материал '. $request->input('title') .' добавлен')->flash();
-			return Redirect::to('/admin/'. $this->config->name .'/'. $data->id .'/edit')->withInput();
+			return Redirect::to('/admin/'. LarrockCategory::getName() .'/'. $data->id .'/edit')->withInput();
 		}
 
 		Alert::add('errorAdmin', 'Материал '. $request->input('title') .' не добавлен')->flash();
@@ -112,13 +108,12 @@ class AdminCategoryController extends Controller
      */
 	public function storeEasy(Request $request)
 	{
-        $validator = Validator::make($request->all(), $this->config->valid);
+        $validator = Validator::make($request->all(), LarrockCategory::getValid());
         if($validator->fails()){
             return back()->withInput($request->except('password'))->withErrors($validator);
         }
 
-		$data = new Category();
-		$data->fill($request->all());
+        $data = LarrockCategory::getModel()->fill($request->all());
 		$data->active = $request->input('active', 1);
 		$data->position = $request->input('position', 0);
 		$data->attached = $request->input('attached', 0);
@@ -126,7 +121,7 @@ class AdminCategoryController extends Controller
 		$data->user_id = $request->user()->id;
 
 		if((int)$request->input('parent') !== 0){
-			if($get_parent = Category::find($request->input('parent'))->first()){
+			if($get_parent = LarrockCategory::getModel()->find($request->input('parent'))->first()){
 				$data->level = (int) $get_parent->level +1;
 			}
 		}else{
@@ -134,7 +129,7 @@ class AdminCategoryController extends Controller
 		}
 
 		//Проверяем уникальность url
-        if(Category::whereUrl($data->url)->first()){
+        if(LarrockCategory::getModel()->whereUrl($data->url)->first()){
             $data->url = $data->url .'-'. mt_rand(0,9999);
         }
 
@@ -157,12 +152,11 @@ class AdminCategoryController extends Controller
 	 */
     public function edit($id)
     {
-		$data['data'] = Category::with(['getFiles', 'getImages'])->findOrFail($id);
-        $data['app'] = $this->config->tabbable($data['data']);
+		$data['data'] = LarrockCategory::getModel()->with(['getFiles', 'getImages'])->findOrFail($id);
+        $data['app'] = LarrockCategory::tabbable($data['data']);
 
-        $validator = JsValidator::make(Component::_valid_construct($this->config, 'update', $id));
+        $validator = JsValidator::make(Component::_valid_construct(LarrockCategory::getConfig(), 'update', $id));
         View::share('validator', $validator);
-
 
 		Breadcrumbs::register('admin.category.edit', function($breadcrumbs, $data)
 		{
@@ -185,15 +179,14 @@ class AdminCategoryController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), Component::_valid_construct($this->config, 'update', $id));
+        $validator = Validator::make($request->all(), Component::_valid_construct(LarrockCategory::getConfig(), 'update', $id));
         if($validator->fails()){
             return back()->withInput($request->except('password'))->withErrors($validator);
         }
 
-		$data = Category::find($id);
-
+		$data = LarrockCategory::getModel()->find($id);
 		$data->fill($request->all());
-        foreach ($this->config->rows as $row){
+        foreach (LarrockCategory::getRows() as $row){
             if(in_array($row->name, $data->getFillable())){
                 if(get_class($row) === 'Larrock\Core\Helpers\FormBuilder\FormCheckbox'){
                     $data->{$row->name} = $request->input($row->name, NULL);
@@ -205,7 +198,7 @@ class AdminCategoryController extends Controller
         }
 		$data->user_id = $request->user()->id;
 
-		if($parent = Category::whereId($data->parent)->first()){
+		if($parent = LarrockCategory::getModel()->whereId($data->parent)->first()){
             $data->level = $parent->level +1;
         }else{
 		    $data->parent = NULL;
@@ -213,9 +206,8 @@ class AdminCategoryController extends Controller
         }
 
 		if($data->save()){
-            $Component = new CategoryComponent();
-            $Component->actionAttach($this->config, $data, $request);
-            $Component->savePluginSeoData($request);
+            LarrockCategory::actionAttach(LarrockCategory::getConfig(), $data, $request);
+            LarrockCategory::savePluginSeoData($request);
 
             Alert::add('successAdmin', Lang::get('larrock::apps.update.success', ['name' => $request->input('title')]))->flash();
 			\Cache::flush();
@@ -235,13 +227,12 @@ class AdminCategoryController extends Controller
      */
 	public function destroy(Request $request, $id)
 	{
-		if($data = Category::find($id)){
+		if($data = LarrockCategory::getModel()->find($id)){
             $name = $data->title;
             $data->clearMediaCollection();
             if($data->delete()){
                 \Cache::flush();
-                $Component = new CategoryComponent();
-                $Component->actionAttach($this->config, $data, $request);
+                LarrockCategory::actionAttach(LarrockCategory::getConfig(), $data, $request);
 
                 Alert::add('successAdmin', Lang::get('larrock::apps.delete.success', ['name' => $name]))->flash();
             }else{

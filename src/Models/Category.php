@@ -2,17 +2,15 @@
 
 namespace Larrock\ComponentCategory\Models;
 
-use Larrock\ComponentUsers\Models\User;
 use Cache;
 use Illuminate\Database\Eloquent\Model;
-use Larrock\ComponentCatalog\Models\Catalog;
-use Larrock\ComponentFeed\Models\Feed;
-use Larrock\Core\Models\Seo;
 use Nicolaslopezj\Searchable\SearchableTrait;
 use Spatie\MediaLibrary\HasMedia\HasMediaTrait;
 use Spatie\MediaLibrary\HasMedia\Interfaces\HasMedia;
 use Spatie\MediaLibrary\HasMedia\Interfaces\HasMediaConversions;
-use Larrock\ComponentCategory;
+use Larrock\ComponentCategory\Facades\LarrockCategory;
+use Larrock\ComponentCatalog\Facades\LarrockCatalog;
+use Larrock\Core\Models\Seo;
 
 /**
  * App\Models\Category
@@ -150,7 +148,7 @@ class Category extends Model implements HasMediaConversions
         if($get_seo = Seo::whereIdConnect($this->parent)->first()){
             return $get_seo->seo_title;
         }
-        if($get_parent = Category::whereId($this->parent)->first()){
+        if($get_parent = LarrockCategory::getModel()->whereId($this->parent)->first()){
             if($get_seo = Seo::whereUrlConnect($get_parent->url)->first()){
                 return $get_seo->seo_title;
             }else{
@@ -162,12 +160,12 @@ class Category extends Model implements HasMediaConversions
 
 	public function get_child()
 	{
-		return $this->hasMany(Category::class, 'parent', 'id')->orderBy('position', 'DESC');
+		return $this->hasMany(LarrockCategory::getModelName(), 'parent', 'id')->orderBy('position', 'DESC');
 	}
 
 	public function get_childActive()
 	{
-		return $this->hasMany(Category::class, 'parent', 'id')->whereActive(1)->orderBy('position', 'DESC');
+		return $this->hasMany(LarrockCategory::getModelName(), 'parent', 'id')->whereActive(1)->orderBy('position', 'DESC');
 	}
 
 	public function getParentTreeAttribute()
@@ -194,14 +192,14 @@ class Category extends Model implements HasMediaConversions
 
 	public function get_parent()
 	{
-		return $this->hasOne(Category::class, 'id', 'parent');
+		return $this->hasOne(LarrockCategory::getModelName(), 'id', 'parent');
 	}
 
 	public function getFullUrlAttribute()
 	{
 		$key = 'category-url'. $this->id;
 		return Cache::remember($key, 1440, function() {
-			if($search_parent = Category::whereId($this->parent)->first()){
+			if($search_parent = LarrockCategory::getModel()->whereId($this->parent)->first()){
 				$prefix = '';
 				if($search_parent->component === 'feed'){
 					$prefix = '/feed';
@@ -209,8 +207,8 @@ class Category extends Model implements HasMediaConversions
 				if($search_parent->component === 'catalog'){
 					$prefix = '/catalog';
 				}
-				if($search_parent_2 = Category::whereId($search_parent->parent)->first()){
-					if($search_parent_3 = Category::whereId($search_parent_2->parent)->first()){
+				if($search_parent_2 = LarrockCategory::getModel()->whereId($search_parent->parent)->first()){
+					if($search_parent_3 = LarrockCategory::getModel()->whereId($search_parent_2->parent)->first()){
 						if($this->get_category){
 							return $prefix. '/'. $search_parent_3->url . '/' . $search_parent_2->url . '/' . $search_parent->url . '/' . $this->get_category->first()->url . '/' . $this->url;
 						}
@@ -243,25 +241,27 @@ class Category extends Model implements HasMediaConversions
 
 	public function getUserAttribute()
 	{
-		return User::whereId($this->user_id)->first();
+		return LarrockUsers::getModel()->whereId($this->user_id)->first();
 	}
 
 	public function get_tovars()
 	{
-		return $this->belongsToMany(Catalog::class, 'category_catalog', 'category_id', 'catalog_id')->orderBy('position', 'DESC');
+		return $this->belongsToMany(LarrockCatalog::getModelName(), 'category_catalog', 'category_id', 'catalog_id')->orderBy('position', 'DESC');
 	}
+
 	public function get_tovarsActive()
 	{
-		return $this->belongsToMany(Catalog::class, 'category_catalog', 'category_id', 'catalog_id')->whereActive(1)->orderBy('position', 'DESC')->orderBy('cost', 'DESC');
+		return $this->belongsToMany(LarrockCatalog::getModelName(), 'category_catalog', 'category_id', 'catalog_id')->whereActive(1)->orderBy('position', 'DESC')->orderBy('cost', 'DESC');
 	}
 
 	public function get_tovarsAlias()
 	{
-		return $this->belongsToMany(Catalog::class, 'category_catalog', 'category_id', 'catalog_id')->whereActive(1)->orderBy('position', 'DESC');
+		return $this->belongsToMany(LarrockCatalog::getModelName(), 'category_catalog', 'category_id', 'catalog_id')->whereActive(1)->orderBy('position', 'DESC');
 	}
+
 	public function get_tovarsCount()
 	{
-		return $this->belongsToMany(Catalog::class, 'category_catalog', 'category_id', 'catalog_id')->count();
+		return $this->belongsToMany(LarrockCatalog::getModelName(), 'category_catalog', 'category_id', 'catalog_id')->count();
 	}
 
 	public function getShortWrapAttribute()
@@ -271,13 +271,12 @@ class Category extends Model implements HasMediaConversions
 
 	public function getImages()
 	{
-        $config = new ComponentCategory\CategoryComponent();
-		return $this->hasMany('Spatie\MediaLibrary\Media', 'model_id', 'id')->where([['model_type', '=', $config->model], ['collection_name', '=', 'images']])->orderBy('order_column', 'DESC');
+		return $this->hasMany('Spatie\MediaLibrary\Media', 'model_id', 'id')->where([['model_type', '=', LarrockCategory::getModelName()], ['collection_name', '=', 'images']])->orderBy('order_column', 'DESC');
 	}
+
 	public function getFirstImage()
 	{
-        $config = new ComponentCategory\CategoryComponent();
-		return $this->hasOne('Spatie\MediaLibrary\Media', 'model_id', 'id')->where([['model_type', '=', $config->model], ['collection_name', '=', 'images']])->orderBy('order_column', 'DESC');
+		return $this->hasOne('Spatie\MediaLibrary\Media', 'model_id', 'id')->where([['model_type', '=', LarrockCategory::getModelName()], ['collection_name', '=', 'images']])->orderBy('order_column', 'DESC');
 	}
 
 	public function getFirstImageAttribute()
@@ -293,28 +292,27 @@ class Category extends Model implements HasMediaConversions
 
     public function getFiles()
     {
-        $config = new ComponentCategory\CategoryComponent();
-        return $this->hasMany('Spatie\MediaLibrary\Media', 'model_id', 'id')->where([['model_type', '=', $config->model], ['collection_name', '=', 'files']])->orderBy('order_column', 'DESC');
+        return $this->hasMany('Spatie\MediaLibrary\Media', 'model_id', 'id')->where([['model_type', '=', LarrockCategory::getModelName()], ['collection_name', '=', 'files']])->orderBy('order_column', 'DESC');
     }
 
 	public function get_feed()
 	{
-		return $this->hasMany(Feed::class, 'category', 'id')->orderBy('position', 'DESC');
+		return $this->hasMany(LarrockFeed::getModelName(), 'category', 'id')->orderBy('position', 'DESC');
 	}
 
 	public function get_feedActive()
 	{
-		return $this->hasMany(Feed::class, 'category', 'id')->whereActive(1)->orderBy('position', 'DESC');
+		return $this->hasMany(LarrockFeed::getModelName(), 'category', 'id')->whereActive(1)->orderBy('position', 'DESC');
 	}
 
 	public function get_soputka()
 	{
-		return $this->belongsToMany(Category::class, 'category_link', 'category_id', 'category_id_link')->orderBy('position', 'DESC');
+		return $this->belongsToMany(LarrockCategory::getModelName(), 'category_link', 'category_id', 'category_id_link')->orderBy('position', 'DESC');
 	}
 
 	public function get_soputkaTovars()
 	{
-		$find_categories = $this->belongsToMany(Category::class, 'category_link', 'category_id', 'category_id_link')->orderBy('position', 'DESC')->get(['id']);
+		$find_categories = $this->belongsToMany(LarrockCategory::getModelName(), 'category_link', 'category_id', 'category_id_link')->orderBy('position', 'DESC')->get(['id']);
 		$list_categories = [];
 		foreach($find_categories as $category){
 			$list_categories[] = $category->id;
@@ -326,6 +324,6 @@ class Category extends Model implements HasMediaConversions
 
 	public function get_discount()
     {
-        return $this->hasOne(Discount::class, 'id', 'discount_id');
+        return $this->hasOne(LarrockDiscount::getModelName(), 'id', 'discount_id');
     }
 }
