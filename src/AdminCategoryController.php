@@ -22,7 +22,7 @@ class AdminCategoryController extends Controller
 
 	public function __construct()
 	{
-        LarrockCategory::shareConfig();
+        $this->config = LarrockCategory::shareConfig();
 
         Breadcrumbs::setView('larrock::admin.breadcrumb.breadcrumb');
         Breadcrumbs::register('admin.'. LarrockCategory::getName() .'.index', function($breadcrumbs){
