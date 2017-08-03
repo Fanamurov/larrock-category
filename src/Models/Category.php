@@ -129,15 +129,15 @@ class Category extends Model implements HasMediaConversions
 
 	public function get_seo()
 	{
-		return $this->hasOne(Seo::class, 'id_connect', 'id')->whereTypeConnect('category');
+		return $this->hasOne(Seo::class, 'seo_id_connect', 'id')->whereSeoTypeConnect('category');
 	}
 
 	public function getGetSeoTitleAttribute()
 	{
-		if($get_seo = Seo::whereIdConnect($this->id)->first()){
+		if($get_seo = Seo::whereSeoIdConnect($this->id)->first()){
 			return $get_seo->seo_title;
 		}
-		if($get_seo = Seo::whereUrlConnect($this->url)->first()){
+		if($get_seo = Seo::whereSeoUrlConnect($this->url)->first()){
 			return $get_seo->seo_title;
 		}
 		return $this->title;
@@ -145,11 +145,11 @@ class Category extends Model implements HasMediaConversions
 
     public function getGetParentSeoTitleAttribute()
     {
-        if($get_seo = Seo::whereIdConnect($this->parent)->first()){
+        if($get_seo = Seo::whereSeoIdConnect($this->parent)->first()){
             return $get_seo->seo_title;
         }
         if($get_parent = LarrockCategory::getModel()->whereId($this->parent)->first()){
-            if($get_seo = Seo::whereUrlConnect($get_parent->url)->first()){
+            if($get_seo = Seo::whereSeoUrlConnect($get_parent->url)->first()){
                 return $get_seo->seo_title;
             }else{
                 return $get_parent->title;
@@ -170,25 +170,22 @@ class Category extends Model implements HasMediaConversions
 
 	public function getParentTreeAttribute()
 	{
-		$list[] = $this;
 		$key = 'tree_category'. $this->id;
-		$list = Cache::remember($key, 1440, function() use ($list) {
-			$get_data = $this->get_parent()->first();
-			if(count($get_data) > 0){
-				$list[] = $get_data;
-				$get_data = $get_data->get_parent()->first();
-				if(count($get_data) > 0){
-					$list[] = $get_data;
-					$get_data = $get_data->get_parent()->first();
-					if(count($get_data) > 0){
-						$list[] = $get_data;
-					}
-				}
-			}
-			return array_reverse($list);
+		$list = Cache::remember($key, 1440, function() {
+            $list[] = $this;
+            return $this->iterate_tree($this, $list);
 		});
 		return $list;
 	}
+
+	protected function iterate_tree($category, $list = [])
+    {
+        if($get_data = $category->get_parent()->first()){
+            $list[] = $get_data;
+            return $this->iterate_tree($get_data, $list);
+        }
+        return array_reverse($list);
+    }
 
 	public function get_parent()
 	{
@@ -197,41 +194,16 @@ class Category extends Model implements HasMediaConversions
 
 	public function getFullUrlAttribute()
 	{
-		$key = 'category-url'. $this->id;
-		return Cache::remember($key, 1440, function() {
-			if($search_parent = LarrockCategory::getModel()->whereId($this->parent)->first()){
-				$prefix = '';
-				if($search_parent->component === 'feed'){
-					$prefix = '/feed';
-				}
-				if($search_parent->component === 'catalog'){
-					$prefix = '/catalog';
-				}
-				if($search_parent_2 = LarrockCategory::getModel()->whereId($search_parent->parent)->first()){
-					if($search_parent_3 = LarrockCategory::getModel()->whereId($search_parent_2->parent)->first()){
-						if($this->get_category){
-							return $prefix. '/'. $search_parent_3->url . '/' . $search_parent_2->url . '/' . $search_parent->url . '/' . $this->get_category->first()->url . '/' . $this->url;
-						}
-                        return $prefix. '/'. $search_parent_3->url . '/' . $search_parent_2->url . '/' . $search_parent->url . '/' . $this->url;
-					}
-                    if($this->get_category){
-                        return $prefix. '/'. $search_parent_2->url . '/' . $search_parent->url . '/' . $this->get_category->first()->url . '/' . $this->url;
-                    }
-                    return $prefix. '/'. $search_parent_2->url . '/' . $search_parent->url . '/' . $this->url;
-				}
-                return $prefix. '/'. $search_parent->url . '/' . $this->url;
-			}
-
-            $prefix = '/';
-            if($this->component === 'feed'){
-                $prefix = '/feed/';
+        return Cache::remember('url_category'. $this->id, 1440, function() {
+            $url = '';
+            if($this->component){
+                $url = '/'. $this->component;
             }
-            if($this->component === 'catalog'){
-                $prefix = '/catalog/';
+            foreach ($this->parent_tree as $category){
+                $url .= '/'. $category->url;
             }
-            return $prefix . $this->url;
-		});
-
+            return $url;
+        });
 	}
 
 	public function getClassElementAttribute()
@@ -252,11 +224,6 @@ class Category extends Model implements HasMediaConversions
 	public function get_tovarsActive()
 	{
 		return $this->belongsToMany(LarrockCatalog::getModelName(), 'category_catalog', 'category_id', 'catalog_id')->whereActive(1)->orderBy('position', 'DESC')->orderBy('cost', 'DESC');
-	}
-
-	public function get_tovarsAlias()
-	{
-		return $this->belongsToMany(LarrockCatalog::getModelName(), 'category_catalog', 'category_id', 'catalog_id')->whereActive(1)->orderBy('position', 'DESC');
 	}
 
 	public function get_tovarsCount()
@@ -317,7 +284,7 @@ class Category extends Model implements HasMediaConversions
 		foreach($find_categories as $category){
 			$list_categories[] = $category->id;
 		}
-		return Catalog::whereActive(1)->whereHas('category', function ($q) use ($list_categories){
+		return LarrockCatalog::getModel()->whereActive(1)->whereHas('category', function ($q) use ($list_categories){
 			$q->whereIn('category.id', $list_categories);
 		})->get();
 	}
