@@ -22,11 +22,6 @@
                 {{ str_limit($data_value->full_url, 35, '...') }}
             </a>
         </td>
-        <td class="row-position uk-hidden-small">
-            <input type="text" name="position" value="{{ $data_value->position }}" class="ajax_edit_row uk-form-controls"
-                   data-row_where="id" data-value_where="{{ $data_value->id }}" data-table="category"
-                   data-toggle="tooltip" data-placement="bottom" title="Вес. Чем больше, тем выше в списках">
-        </td>
         <td class="row-active">
             <div class="uk-button-group btn-group_switch_ajax" role="group" style="width: 100%">
                 <button type="button" class="uk-button uk-button-primary uk-button-small @if($data_value->active === 0) uk-button-outline @endif"
@@ -38,6 +33,11 @@
                         data-row="active" data-value="0" style="width: 50%"
                         data-toggle="tooltip" data-placement="bottom" title="Выключить">off</button>
             </div>
+        </td>
+        <td class="row-position uk-hidden-small">
+            <input type="text" name="position" value="{{ $data_value->position }}" class="ajax_edit_row uk-form-controls"
+                   data-row_where="id" data-value_where="{{ $data_value->id }}" data-table="category"
+                   data-toggle="tooltip" data-placement="bottom" title="Вес. Чем больше, тем выше в списках">
         </td>
         <td class="row-edit uk-hidden-small">
             <a href="/admin/category/{{ $data_value->id }}/edit" class="uk-button uk-button-small">Свойства</a>

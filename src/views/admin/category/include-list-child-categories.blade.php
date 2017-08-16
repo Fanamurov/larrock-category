@@ -25,11 +25,6 @@
                 <span class="label label-warning">Прикреплен на главную</span>
             @endif
         </td>
-        <td class="row-position">
-            <input type="text" name="position" value="{{ $data_value->position }}" class="ajax_edit_row form-control"
-                   data-row_where="id" data-value_where="{{ $data_value->id }}" data-table="category"
-                   data-toggle="tooltip" data-placement="bottom" title="Вес. Чем больше, тем выше в списках">
-        </td>
         <td class="row-active">
             <div class="btn-group pull-right btn-group_switch_ajax" role="group">
                 <button type="button" class="btn btn-xs btn-info @if($data_value->active === 0) btn-outline @endif"
@@ -41,6 +36,11 @@
                         data-row="active" data-value="0"
                         data-toggle="tooltip" data-placement="bottom" title="Выключить">off</button>
             </div>
+        </td>
+        <td class="row-position">
+            <input type="text" name="position" value="{{ $data_value->position }}" class="ajax_edit_row form-control"
+                   data-row_where="id" data-value_where="{{ $data_value->id }}" data-table="category"
+                   data-toggle="tooltip" data-placement="bottom" title="Вес. Чем больше, тем выше в списках">
         </td>
         <td class="row-edit hidden-xs">
             <a href="/admin/category/{{ $data_value->id }}/edit" class="btn btn-info btn-xs">Свойства</a>

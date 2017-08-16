@@ -10,6 +10,8 @@ use Spatie\MediaLibrary\HasMedia\Interfaces\HasMedia;
 use Spatie\MediaLibrary\HasMedia\Interfaces\HasMediaConversions;
 use Larrock\ComponentCategory\Facades\LarrockCategory;
 use Larrock\ComponentCatalog\Facades\LarrockCatalog;
+use Larrock\ComponentFeed\Facades\LarrockFeed;
+use Larrock\ComponentDiscount\Facades\LarrockDiscount;
 use Larrock\Core\Models\Seo;
 
 /**
@@ -80,6 +82,13 @@ class Category extends Model implements HasMediaConversions
 {
     use HasMediaTrait;
 
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+        $this->fillable(LarrockCategory::addFillableUserRows(['title', 'short', 'description', 'component', 'parent', 'level', 'url', 'sitemap', 'rss', 'position', 'active']));
+        $this->table = LarrockCategory::getConfig()->table;
+    }
+
     public function registerMediaConversions()
     {
         $this->addMediaConversion('110x110')
@@ -94,10 +103,6 @@ class Category extends Model implements HasMediaConversions
             ->setManipulations(['w' => 250, 'h' => 250])
             ->performOnCollections('images');
     }
-
-    protected $table = 'category';
-
-	protected $fillable = ['title', 'short', 'description', 'component', 'parent', 'level', 'url', 'sitemap', 'rss', 'position', 'active'];
 
 	protected $casts = [
 		'position' => 'integer',
