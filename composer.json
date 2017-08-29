@@ -17,5 +17,15 @@
     },
     "require": {
         "fanamurov/larrock-core": "^0.1"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Larrock\\ComponentCategory\\LarrockComponentCategoryServiceProvider"
+            ],
+            "aliases": {
+                "LarrockCategory": "Larrock\\ComponentCategory\\Facades\\LarrockCategory"
+            }
+        }
     }
 }
