@@ -6,13 +6,13 @@ use Cache;
 use Illuminate\Database\Eloquent\Model;
 use Nicolaslopezj\Searchable\SearchableTrait;
 use Spatie\MediaLibrary\HasMedia\HasMediaTrait;
-use Spatie\MediaLibrary\HasMedia\Interfaces\HasMedia;
 use Spatie\MediaLibrary\HasMedia\Interfaces\HasMediaConversions;
 use Larrock\ComponentCategory\Facades\LarrockCategory;
 use Larrock\ComponentCatalog\Facades\LarrockCatalog;
 use Larrock\ComponentFeed\Facades\LarrockFeed;
 use Larrock\ComponentDiscount\Facades\LarrockDiscount;
 use Larrock\Core\Models\Seo;
+use Spatie\MediaLibrary\Media;
 
 /**
  * App\Models\Category
@@ -89,18 +89,18 @@ class Category extends Model implements HasMediaConversions
         $this->table = LarrockCategory::getConfig()->table;
     }
 
-    public function registerMediaConversions()
+    public function registerMediaConversions(Media $media = null)
     {
         $this->addMediaConversion('110x110')
-            ->setManipulations(['w' => 110, 'h' => 110])
+            ->height(110)->width(110)
             ->performOnCollections('images');
 
         $this->addMediaConversion('140x140')
-            ->setManipulations(['w' => 140, 'h' => 140])
+            ->height(140)->width(140)
             ->performOnCollections('images');
 
         $this->addMediaConversion('250x250')
-            ->setManipulations(['w' => 250, 'h' => 250])
+            ->height(250)->width(250)
             ->performOnCollections('images');
     }
 
