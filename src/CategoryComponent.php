@@ -9,6 +9,7 @@ use Larrock\Core\Helpers\FormBuilder\FormHidden;
 use Larrock\Core\Helpers\FormBuilder\FormInput;
 use Larrock\Core\Helpers\FormBuilder\FormTextarea;
 use Larrock\ComponentCategory\Models\Category;
+use Larrock\ComponentCategory\Facades\LarrockCategory;
 
 class CategoryComponent extends Component
 {
@@ -59,5 +60,10 @@ class CategoryComponent extends Component
         //$row = new FormCheckbox('attached', 'Прикреплен на главную');
 
         return $this;
+    }
+
+    public function createSitemap()
+    {
+        return LarrockCategory::getModel()->whereActive(1)->whereSitemap(1)->get();
     }
 }
