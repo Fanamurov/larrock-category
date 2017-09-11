@@ -41,6 +41,7 @@
             <input type="text" name="position" value="{{ $data_value->position }}" class="ajax_edit_row form-control"
                    data-row_where="id" data-value_where="{{ $data_value->id }}" data-table="category"
                    data-toggle="tooltip" data-placement="bottom" title="Вес. Чем больше, тем выше в списках">
+            <i class="uk-sortable-handle uk-icon uk-icon-bars uk-margin-small-right" title="Перенести материал по весу"></i>
         </td>
         <td class="row-edit hidden-xs">
             <a href="/admin/category/{{ $data_value->id }}/edit" class="btn btn-info btn-xs">Свойства</a>
