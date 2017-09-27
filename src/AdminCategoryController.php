@@ -90,6 +90,10 @@ class AdminCategoryController extends Controller
             $data->url = $data->url .'-'. mt_rand(0,9999);
         }
 
+        if($data->parent === 0){
+            $data->parent = NULL;
+        }
+
 		if($data->save()){
 			Alert::add('successAdmin', 'Материал '. $request->input('title') .' добавлен')->flash();
 			return Redirect::to('/admin/'. LarrockCategory::getName() .'/'. $data->id .'/edit')->withInput();
@@ -131,6 +135,10 @@ class AdminCategoryController extends Controller
 		//Проверяем уникальность url
         if(LarrockCategory::getModel()->whereUrl($data->url)->first()){
             $data->url = $data->url .'-'. mt_rand(0,9999);
+        }
+
+        if($data->parent === 0){
+            $data->parent = NULL;
         }
 
 		if($data->save()){

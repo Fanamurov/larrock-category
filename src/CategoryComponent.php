@@ -10,6 +10,7 @@ use Larrock\Core\Helpers\FormBuilder\FormInput;
 use Larrock\Core\Helpers\FormBuilder\FormTextarea;
 use Larrock\ComponentCategory\Models\Category;
 use Larrock\ComponentCategory\Facades\LarrockCategory;
+use Larrock\Core\Helpers\Tree;
 
 class CategoryComponent extends Component
 {
@@ -31,7 +32,7 @@ class CategoryComponent extends Component
     protected function addRows()
     {
         $row = new FormCategory('parent', 'Родительский раздел');
-        $this->rows['parent'] = $row->setValid('required')->setConnect(Category::class, 'get_category')->setMaxItems(1);
+        $this->rows['parent'] = $row->setConnect(Category::class, 'get_category')->setMaxItems(1)->setDefaultValue(NULL);
 
         $row = new FormInput('title', 'Заголовок');
         $this->rows['title'] = $row->setValid('max:255|required')->setTypo();
@@ -57,13 +58,17 @@ class CategoryComponent extends Component
         $row = new FormCategory('soputka', 'Сопутствующие разделы');
         $this->rows['soputka'] = $row->setConnect(Category::class, 'get_soputka')->setAttached()->setAllowEmpty();
 
-        //$row = new FormCheckbox('attached', 'Прикреплен на главную');
-
         return $this;
     }
 
     public function createSitemap()
     {
-        return LarrockCategory::getModel()->whereActive(1)->whereSitemap(1)->get();
+        $tree = new Tree();
+        if($activeCategory = $tree->listActiveCategories(LarrockCategory::getModel()->whereActive(1)->whereSitemap(1)->whereParent(NULL)->get())){
+            $table = LarrockCategory::getConfig()->table;
+
+            return LarrockCategory::getModel()->whereActive(1)->whereSitemap(1)->whereIn(LarrockCategory::getConfig()->table .'.id', $activeCategory)->get();
+        }
+        return [];
     }
 }

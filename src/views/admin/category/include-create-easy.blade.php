@@ -12,7 +12,9 @@
         </td>
         <td colspan="4">
             {!! csrf_field() !!}
-            <input type="hidden" name="parent" value="{{ $parent or 0 }}">
+            @if($parent && $parent > 0)
+                <input type="hidden" name="parent" value="{{ $parent }}">
+            @endif
             <input type="hidden" name="url" value="novyy-material">
             <input type="hidden" name="component" value="{{ $component }}">
             <button class="uk-button uk-button-primary" name="save_category_easy">Сохранить</button>

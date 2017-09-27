@@ -192,10 +192,34 @@ class Category extends Model implements HasMediaConversions
         return array_reverse($list);
     }
 
+    public function getParentTreeActiveAttribute()
+    {
+        $key = 'tree_category_active'. $this->id;
+        $list = Cache::remember($key, 1440, function() {
+            $list[] = $this;
+            return $this->iterate_tree_active($this, $list);
+        });
+        return $list;
+    }
+
+    protected function iterate_tree_active($category, $list = [])
+    {
+        if($get_data = $category->get_parentActive()->first()){
+            $list[] = $get_data;
+            return $this->iterate_tree_active($get_data, $list);
+        }
+        return array_reverse($list);
+    }
+
 	public function get_parent()
 	{
 		return $this->hasOne(LarrockCategory::getModelName(), 'id', 'parent');
 	}
+
+    public function get_parentActive()
+    {
+        return $this->hasOne(LarrockCategory::getModelName(), 'id', 'parent')->where(LarrockCategory::getTable(). 'active', '=', 1);
+    }
 
 	public function getFullUrlAttribute()
 	{
