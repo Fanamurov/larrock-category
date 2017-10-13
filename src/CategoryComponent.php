@@ -65,8 +65,6 @@ class CategoryComponent extends Component
     {
         $tree = new Tree();
         if($activeCategory = $tree->listActiveCategories(LarrockCategory::getModel()->whereActive(1)->whereSitemap(1)->whereParent(NULL)->get())){
-            $table = LarrockCategory::getConfig()->table;
-
             return LarrockCategory::getModel()->whereActive(1)->whereSitemap(1)->whereIn(LarrockCategory::getConfig()->table .'.id', $activeCategory)->get();
         }
         return [];
