@@ -4,6 +4,7 @@ namespace Larrock\ComponentCategory\Models;
 
 use Cache;
 use Illuminate\Database\Eloquent\Model;
+use LarrockUsers;
 use Nicolaslopezj\Searchable\SearchableTrait;
 use Spatie\MediaLibrary\HasMedia\HasMediaTrait;
 use Spatie\MediaLibrary\HasMedia\Interfaces\HasMediaConversions;
@@ -156,11 +157,18 @@ class Category extends Model implements HasMediaConversions
         if($get_parent = LarrockCategory::getModel()->whereId($this->parent)->first()){
             if($get_seo = Seo::whereSeoUrlConnect($get_parent->url)->first()){
                 return $get_seo->seo_title;
-            }else{
-                return $get_parent->title;
             }
+            return $get_parent->title;
         }
         return $this->title;
+    }
+
+    public function getDescriptionCategoryOnLinkAttribute()
+    {
+        if(config('larrock.catalog.DescriptionCatalogCategoryLink')){
+            return LarrockFeed::getModel()->find($this->description_link);
+        }
+        return NULL;
     }
 
 	public function get_child()

@@ -16,9 +16,10 @@ class CreateCategoryTable extends Migration {
 		{
 			$table->increments('id');
 			$table->char('title');
-			$table->text('short')->nullable();;
-			$table->text('description')->nullable();;
-			$table->char('component')->nullable();;
+			$table->text('short')->nullable();
+			$table->text('description')->nullable();
+			$table->char('description_link')->nullable();
+			$table->char('component')->nullable();
 			$table->integer('parent')->nullable();
 			$table->integer('level')->default(1);
 			$table->char('url')->unique();
