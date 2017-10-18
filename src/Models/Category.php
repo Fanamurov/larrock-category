@@ -173,12 +173,12 @@ class Category extends Model implements HasMediaConversions
 
 	public function get_child()
 	{
-		return $this->hasMany(LarrockCategory::getModelName(), 'parent', 'id')->orderBy('position', 'DESC');
+		return $this->hasMany(LarrockCategory::getModelName(), 'parent', 'id')->orderBy('position', 'DESC')->orderBy('updated_at', 'ASC');
 	}
 
 	public function get_childActive()
 	{
-		return $this->hasMany(LarrockCategory::getModelName(), 'parent', 'id')->whereActive(1)->orderBy('position', 'DESC');
+		return $this->hasMany(LarrockCategory::getModelName(), 'parent', 'id')->whereActive(1)->orderBy('position', 'DESC')->orderBy('updated_at', 'ASC');
 	}
 
 	public function getParentTreeAttribute()
@@ -255,7 +255,7 @@ class Category extends Model implements HasMediaConversions
 
 	public function get_tovars()
 	{
-		return $this->belongsToMany(LarrockCatalog::getModelName(), 'category_catalog', 'category_id', 'catalog_id')->orderBy('position', 'DESC');
+		return $this->belongsToMany(LarrockCatalog::getModelName(), 'category_catalog', 'category_id', 'catalog_id')->orderBy('position', 'DESC')->orderBy('updated_at', 'ASC');
 	}
 
 	public function get_tovarsActive()
