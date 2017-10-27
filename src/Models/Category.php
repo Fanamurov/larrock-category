@@ -5,6 +5,8 @@ namespace Larrock\ComponentCategory\Models;
 use Cache;
 use Illuminate\Database\Eloquent\Model;
 use Larrock\Core\Helpers\Plugins\RenderPlugins;
+use Larrock\Core\Traits\GetFilesAndImages;
+use Larrock\Core\Traits\GetSeo;
 use LarrockUsers;
 use Nicolaslopezj\Searchable\SearchableTrait;
 use Spatie\MediaLibrary\HasMedia\HasMediaTrait;
@@ -82,28 +84,18 @@ use Spatie\MediaLibrary\Media;
  */
 class Category extends Model implements HasMediaConversions
 {
+    use SearchableTrait;
     use HasMediaTrait;
+    use GetFilesAndImages;
+    use GetSeo;
 
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
         $this->fillable(LarrockCategory::addFillableUserRows(['title', 'short', 'description', 'component', 'parent', 'level', 'url', 'sitemap', 'rss', 'position', 'active']));
         $this->table = LarrockCategory::getConfig()->table;
-    }
-
-    public function registerMediaConversions(Media $media = null)
-    {
-        $this->addMediaConversion('110x110')
-            ->height(110)->width(110)
-            ->performOnCollections('images');
-
-        $this->addMediaConversion('140x140')
-            ->height(140)->width(140)
-            ->performOnCollections('images');
-
-        $this->addMediaConversion('250x250')
-            ->height(250)->width(250)
-            ->performOnCollections('images');
+        $this->modelName = LarrockCategory::getModelName();
+        $this->componentName = 'category';
     }
 
 	protected $casts = [
@@ -125,30 +117,12 @@ class Category extends Model implements HasMediaConversions
 
 	protected $guarded = ['user_id'];
 
-	use SearchableTrait;
-
 	// no need for this, but you can define default searchable columns:
 	protected $searchable = [
 		'columns' => [
 			'category.title' => 10
 		]
 	];
-
-	public function get_seo()
-	{
-		return $this->hasOne(Seo::class, 'seo_id_connect', 'id')->whereSeoTypeConnect('category');
-	}
-
-	public function getGetSeoTitleAttribute()
-	{
-		if($get_seo = Seo::whereSeoIdConnect($this->id)->first()){
-			return $get_seo->seo_title;
-		}
-		if($get_seo = Seo::whereSeoUrlConnect($this->url)->first()){
-			return $get_seo->seo_title;
-		}
-		return $this->title;
-	}
 
     public function getGetParentSeoTitleAttribute()
     {
@@ -273,32 +247,6 @@ class Category extends Model implements HasMediaConversions
 	{
 		return mb_strimwidth($this->short, 0, 200, '...');
 	}
-
-	public function getImages()
-	{
-		return $this->hasMany('Spatie\MediaLibrary\Media', 'model_id', 'id')->where([['model_type', '=', LarrockCategory::getModelName()], ['collection_name', '=', 'images']])->orderBy('order_column', 'DESC');
-	}
-
-	public function getFirstImage()
-	{
-		return $this->hasOne('Spatie\MediaLibrary\Media', 'model_id', 'id')->where([['model_type', '=', LarrockCategory::getModelName()], ['collection_name', '=', 'images']])->orderBy('order_column', 'DESC');
-	}
-
-	public function getFirstImageAttribute()
-	{
-		$value = Cache::remember('image_f_category'. $this->id, 1440, function() {
-			if($get_image = $this->getMedia('images')->sortByDesc('order_column')->first()){
-				return $get_image->getUrl();
-			}
-            return '/_assets/_front/_images/empty_big.png';
-		});
-		return $value;
-	}
-
-    public function getFiles()
-    {
-        return $this->hasMany('Spatie\MediaLibrary\Media', 'model_id', 'id')->where([['model_type', '=', LarrockCategory::getModelName()], ['collection_name', '=', 'files']])->orderBy('order_column', 'DESC');
-    }
 
 	public function get_feed()
 	{
