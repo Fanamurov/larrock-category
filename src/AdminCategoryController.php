@@ -10,6 +10,8 @@ use App\Http\Controllers\Controller;
 use JsValidator;
 use Lang;
 use Larrock\ComponentCategory\Facades\LarrockCategory;
+use Larrock\ComponentCatalog\Facades\LarrockCatalog;
+use LarrockFeed;
 use Redirect;
 use Session;
 use Validator;
@@ -234,20 +236,112 @@ class AdminCategoryController extends Controller
      */
     public function destroy(Request $request, $id)
     {
-        if($data = LarrockCategory::getModel()->find($id)){
-            $name = $data->title;
-            $data->clearMediaCollection();
-            if($data->delete()){
-                \Cache::flush();
+        $allowDestroy = TRUE;
+
+        if($data = LarrockCategory::getModel()->with(['get_child'])->find($id)){
+            //Проверка на наличие вложенных разделов или прикрепленных материалов
+            if( !$request->has('allowDestroy')){
+                if(count($data->get_child) > 0){
+                    Session::push('destroyCategory', 'category/'. $id);
+                    Session::push('message.dangerDestroy', 'Раздел содержит в себе другие разделы. Удалить их все?');
+                    $allowDestroy = NULL;
+                }
+                if(file_exists(base_path(). '/vendor/fanamurov/larrock-catalog') && $data->get_tovars()->count() > 0){
+                    Session::push('destroyCategory', 'category/'. $id);
+                    Session::push('message.dangerDestroy', 'Раздел содержит в себе товары каталога. Удалить их все?');
+                    $allowDestroy = NULL;
+                }
+                if(file_exists(base_path(). '/vendor/fanamurov/larrock-feed') && $data->get_feed()->count() > 0){
+                    Session::push('destroyCategory', 'category/'. $id);
+                    Session::push('message.dangerDestroy', 'Раздел содержит в себе материалы лент. Удалить их все?');
+                    $allowDestroy = NULL;
+                }
+            }
+
+            if($allowDestroy){
+                $this->destroyTovars($data, $request);
+                $this->destroyFeeds($data, $request);
+                $this->destroyChilds($data, $request);
+
+                $name = $data->title;
+                $data->clearMediaCollection();
                 LarrockCategory::actionAttach(LarrockCategory::getConfig(), $data, $request);
 
-                Session::push('message.success', Lang::get('larrock::apps.delete.success', ['name' => $name]));
-            }else{
-                Session::push('message.danger', 'Раздел не удален');
+                if($data->delete()){
+                    \Cache::flush();
+
+                    Session::push('message.success', Lang::get('larrock::apps.delete.success', ['name' => $name]));
+                }else{
+                    Session::push('message.danger', 'Раздел не удален');
+                }
             }
         }else{
-            Session::push('message.danger', 'Такого материала больше нет');
+            Session::push('message.danger', 'Такого раздела больше нет');
         }
         return back()->withInput();
+    }
+
+    /**
+     * Удаление потомков разделов и их связей
+     * @param $data
+     * @param $request
+     */
+    protected function destroyChilds($data, $request)
+    {
+        if($data->get_child()->count() > 0){
+            foreach ($data->get_child()->get() as $child){
+                if($child->get_child()->count() > 0){
+                    $this->destroyChilds($child, $request);
+                }
+                $child_name = $child->title;
+                $child->clearMediaCollection();
+                $this->destroyTovars($child, $request);
+                $this->destroyFeeds($child, $request);
+                LarrockCategory::actionAttach(LarrockCategory::getConfig(), $child, $request);
+                if($child->delete()){
+                    Session::push('message.success', Lang::get('larrock::apps.delete.success', ['name' => $child_name]));
+                }
+            }
+        }
+    }
+
+    /**
+     * Удаление товаров каталога в удалеяемых разделах
+     *
+     * @param $data
+     * @param $request
+     */
+    protected function destroyTovars($data, $request)
+    {
+        if(file_exists(base_path(). '/vendor/fanamurov/larrock-catalog') && $data->get_tovars()->count() > 0){
+            foreach ($data->get_tovars()->get() as $tovar){
+                $tovar_name = $tovar->title;
+                $tovar->clearMediaCollection();
+                LarrockCatalog::actionAttach(LarrockCatalog::getConfig(), $tovar, $request);
+                if($tovar->delete()){
+                    Session::push('message.success', Lang::get('larrock::apps.delete.success', ['name' => $tovar_name]));
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Удаление матераилов лент ил удаляемых разделов
+     * @param $data
+     * @param $request
+     */
+    protected function destroyFeeds($data, $request)
+    {
+        if(file_exists(base_path(). '/vendor/fanamurov/larrock-feed') && $data->get_feed()->count() > 0){
+            foreach ($data->get_feed()->get() as $feed){
+                $feed_name = $feed->title;
+                $feed->clearMediaCollection();
+                LarrockFeed::actionAttach(LarrockFeed::getConfig(), $feed, $request);
+                if($feed->delete()){
+                    Session::push('message.success', Lang::get('larrock::apps.delete.success', ['name' => $feed_name]));
+                }
+            }
+        }
     }
 }
