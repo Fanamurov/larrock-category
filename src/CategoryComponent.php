@@ -2,6 +2,7 @@
 
 namespace Larrock\ComponentCategory;
 
+use Cache;
 use Larrock\Core\Component;
 use Larrock\Core\Helpers\FormBuilder\FormCategory;
 use Larrock\Core\Helpers\FormBuilder\FormCheckbox;
@@ -68,10 +69,29 @@ class CategoryComponent extends Component
     {
         $tree = new Tree();
         if($activeCategory = $tree->listActiveCategories(LarrockCategory::getModel()->whereActive(1)->whereSitemap(1)->whereParent(NULL)->get())){
-            $table = LarrockCategory::getConfig()->table;
-
             return LarrockCategory::getModel()->whereActive(1)->whereSitemap(1)->whereIn(LarrockCategory::getConfig()->table .'.id', $activeCategory)->get();
         }
         return [];
+    }
+
+    public function search()
+    {
+        return Cache::remember('search'. $this->name, 1440, function(){
+            $data = [];
+            foreach (LarrockCategory::getModel()->whereActive(1)->with(['get_parentActive'])->get(['id', 'title', 'parent', 'component', 'url']) as $item){
+                $data[$item->id]['id'] = $item->id;
+                $data[$item->id]['title'] = $item->title;
+                $data[$item->id]['full_url'] = $item->full_url;
+                $data[$item->id]['component'] = $this->name;
+                $data[$item->id]['category'] = NULL;
+                if($item->get_parentActive){
+                    $data[$item->id]['category'] = $item->get_parentActive->title;
+                }
+            }
+            if(count($data) === 0){
+                return NULL;
+            }
+            return $data;
+        });
     }
 }
