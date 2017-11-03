@@ -22,7 +22,7 @@ class CreateCategoryTable extends Migration {
 			$table->char('component')->nullable();
 			$table->integer('parent')->nullable();
 			$table->integer('level')->default(1);
-			$table->char('url')->unique();
+			$table->char('url', 191)->unique();
 			$table->integer('sitemap')->default(1);
 			$table->integer('rss')->default(0);
 			$table->integer('position')->default(1);
