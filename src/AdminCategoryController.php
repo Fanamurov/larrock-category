@@ -6,19 +6,20 @@ use Breadcrumbs;
 use Cache;
 use Illuminate\Http\Request;
 use Larrock\Core\Component;
-use App\Http\Controllers\Controller;
-use JsValidator;
+use Illuminate\Routing\Controller;
 use Lang;
 use Larrock\ComponentCategory\Facades\LarrockCategory;
 use Larrock\ComponentCatalog\Facades\LarrockCatalog;
+use Larrock\Core\Traits\AdminMethodsEdit;
 use LarrockFeed;
 use Redirect;
 use Session;
 use Validator;
-use View;
 
 class AdminCategoryController extends Controller
 {
+    use AdminMethodsEdit;
+
     protected $current_user;
 
     public function __construct()
@@ -150,32 +151,6 @@ class AdminCategoryController extends Controller
 
         Session::push('message.danger', 'Раздел '. $request->input('title') .' не добавлен');
         return back()->withInput();
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int           $id
-     *
-     * @return View
-     */
-    public function edit($id)
-    {
-        $data['data'] = LarrockCategory::getModel()->with(['getFiles', 'getImages'])->findOrFail($id);
-        $data['app'] = LarrockCategory::tabbable($data['data']);
-
-        $validator = JsValidator::make(Component::_valid_construct(LarrockCategory::getConfig(), 'update', $id));
-        View::share('validator', $validator);
-
-        Breadcrumbs::register('admin.category.edit', function($breadcrumbs, $data)
-        {
-            $breadcrumbs->push($data->component, '/admin/'. $data->component);
-            foreach($data->parent_tree as $item){
-                $breadcrumbs->push($item->title, '/admin/'. $item->component .'/'. $item->id);
-            }
-        });
-
-        return view('larrock::admin.admin-builder.edit', $data);
     }
 
     /**
