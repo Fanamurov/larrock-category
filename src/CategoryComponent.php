@@ -74,18 +74,29 @@ class CategoryComponent extends Component
         return [];
     }
 
-    public function search()
+    public function search($admin)
     {
-        return Cache::remember('search'. $this->name, 1440, function(){
+        return Cache::remember('search'. $this->name. $admin, 1440, function() use ($admin){
             $data = [];
-            foreach (LarrockCategory::getModel()->whereActive(1)->with(['get_parentActive'])->get(['id', 'title', 'parent', 'component', 'url']) as $item){
+            if($admin){
+                $items = LarrockCategory::getModel()->with(['get_parent'])->get(['id', 'title', 'parent', 'component', 'url']);
+            }else{
+                $items = LarrockCategory::getModel()->whereActive(1)->with(['get_parentActive'])->get(['id', 'title', 'parent', 'component', 'url']);
+            }
+            foreach ($items as $item){
                 $data[$item->id]['id'] = $item->id;
                 $data[$item->id]['title'] = $item->title;
                 $data[$item->id]['full_url'] = $item->full_url;
                 $data[$item->id]['component'] = $this->name;
                 $data[$item->id]['category'] = NULL;
-                if($item->get_parentActive){
-                    $data[$item->id]['category'] = $item->get_parentActive->title;
+                if($admin){
+                    if($item->get_parent){
+                        $data[$item->id]['category'] = $item->get_parent->title;
+                    }
+                }else{
+                    if($item->get_parentActive){
+                        $data[$item->id]['category'] = $item->get_parentActive->title;
+                    }
                 }
             }
             if(count($data) === 0){
