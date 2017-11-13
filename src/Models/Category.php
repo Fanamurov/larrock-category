@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Larrock\Core\Helpers\Plugins\RenderPlugins;
 use Larrock\Core\Traits\GetFilesAndImages;
 use Larrock\Core\Traits\GetSeo;
+use Larrock\Core\Component;
 use LarrockUsers;
 use Nicolaslopezj\Searchable\SearchableTrait;
 use Spatie\MediaLibrary\HasMedia\HasMediaTrait;
@@ -84,6 +85,11 @@ use Spatie\MediaLibrary\Media;
  */
 class Category extends Model implements HasMediaConversions
 {
+    /**
+     * @var $this Component
+     */
+    public $component;
+    
     use SearchableTrait;
     use HasMediaTrait;
     use GetFilesAndImages;
@@ -93,9 +99,7 @@ class Category extends Model implements HasMediaConversions
     {
         parent::__construct($attributes);
         $this->fillable(LarrockCategory::addFillableUserRows(['title', 'short', 'description', 'component', 'parent', 'level', 'url', 'sitemap', 'rss', 'position', 'active']));
-        $this->table = LarrockCategory::getConfig()->table;
-        $this->modelName = LarrockCategory::getModelName();
-        $this->componentName = 'category';
+        $this->component = LarrockCategory::getConfig();
     }
 
     protected $casts = [
@@ -287,7 +291,7 @@ class Category extends Model implements HasMediaConversions
      */
     public function getShortRenderAttribute()
     {
-        $cache_key = 'ShortRender'. $this->table.'-'. $this->id;
+        $cache_key = 'ShortRender'. $this->component->table.'-'. $this->id;
         if(\Auth::check()){
             $cache_key .= '-'. \Auth::user()->role->first()->level;
         }
@@ -306,7 +310,7 @@ class Category extends Model implements HasMediaConversions
      */
     public function getDescriptionRenderAttribute()
     {
-        $cache_key = 'DescriptionRender'. $this->table.'-'. $this->id;
+        $cache_key = 'DescriptionRender'. $this->component->table.'-'. $this->id;
         if(\Auth::check()){
             $cache_key .= '-'. \Auth::user()->role->first()->level;
         }
