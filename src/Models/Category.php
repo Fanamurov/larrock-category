@@ -100,6 +100,7 @@ class Category extends Model implements HasMediaConversions
         parent::__construct($attributes);
         $this->fillable(LarrockCategory::addFillableUserRows(['title', 'short', 'description', 'component', 'parent', 'level', 'url', 'sitemap', 'rss', 'position', 'active']));
         $this->component = LarrockCategory::getConfig();
+        $this->table = LarrockCategory::getTable();
     }
 
     protected $casts = [
@@ -291,7 +292,7 @@ class Category extends Model implements HasMediaConversions
      */
     public function getShortRenderAttribute()
     {
-        $cache_key = 'ShortRender'. $this->component->table.'-'. $this->id;
+        $cache_key = 'ShortRender'. $this->table.'-'. $this->id;
         if(\Auth::check()){
             $cache_key .= '-'. \Auth::user()->role->first()->level;
         }
@@ -310,7 +311,7 @@ class Category extends Model implements HasMediaConversions
      */
     public function getDescriptionRenderAttribute()
     {
-        $cache_key = 'DescriptionRender'. $this->component->table.'-'. $this->id;
+        $cache_key = 'DescriptionRender'. $this->table.'-'. $this->id;
         if(\Auth::check()){
             $cache_key .= '-'. \Auth::user()->role->first()->level;
         }
