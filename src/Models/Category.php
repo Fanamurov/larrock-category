@@ -88,7 +88,7 @@ class Category extends Model implements HasMediaConversions
     /**
      * @var $this Component
      */
-    public $component;
+    public $config;
     
     use SearchableTrait;
     use HasMediaTrait;
@@ -99,7 +99,7 @@ class Category extends Model implements HasMediaConversions
     {
         parent::__construct($attributes);
         $this->fillable(LarrockCategory::addFillableUserRows(['title', 'short', 'description', 'component', 'parent', 'level', 'url', 'sitemap', 'rss', 'position', 'active']));
-        $this->component = LarrockCategory::getConfig();
+        $this->config = LarrockCategory::getConfig();
         $this->table = LarrockCategory::getTable();
     }
 
