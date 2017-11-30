@@ -33,31 +33,33 @@ class CategoryComponent extends Component
     protected function addRows()
     {
         $row = new FormCategory('parent', 'Родительский раздел');
-        $this->rows['parent'] = $row->setConnect(Category::class, 'get_category')->setMaxItems(1)->setDefaultValue(NULL);
+        $this->rows['parent'] = $row->setConnect(Category::class, 'get_category')
+            ->setMaxItems(1)->setDefaultValue(NULL)->setFillable();
 
         $row = new FormInput('title', 'Заголовок');
-        $this->rows['title'] = $row->setValid('max:255|required')->setTypo();
+        $this->rows['title'] = $row->setValid('max:255|required')->setTypo()->setFillable();
 
         $row = new FormTextarea('short', 'Краткое описание');
-        $this->rows['short'] = $row->setTypo();
+        $this->rows['short'] = $row->setTypo()->setFillable();
 
         $row = new FormTextarea('description', 'Полное описание');
-        $this->rows['description'] = $row->setTypo();
+        $this->rows['description'] = $row->setTypo()->setFillable();
 
         $row = new FormHidden('type', 'Тип раздела');
-        $this->rows['type'] = $row->setDefaultValue('type');
+        $this->rows['type'] = $row->setDefaultValue('type')->setFillable();
 
         $row = new FormHidden('level', 'Уровень вложенности раздела');
-        $this->rows['level'] = $row->setDefaultValue('level');
+        $this->rows['level'] = $row->setDefaultValue('level')->setFillable();
 
         $row = new FormCheckbox('sitemap', 'Публиковать ли в sitemap');
-        $this->rows['sitemap'] = $row->setDefaultValue(1)->setTab('seo', 'Seo');
+        $this->rows['sitemap'] = $row->setDefaultValue(1)->setTab('seo', 'Seo')->setFillable();
 
         $row = new FormCheckbox('rss', 'Публиковать ли в rss');
-        $this->rows['rss'] = $row->setDefaultValue(0)->setTab('seo', 'Seo');
+        $this->rows['rss'] = $row->setDefaultValue(0)->setTab('seo', 'Seo')->setFillable();
 
         $row = new FormCategory('soputka', 'Сопутствующие разделы');
-        $this->rows['soputka'] = $row->setConnect(Category::class, 'get_soputka')->setAttached()->setAllowEmpty();
+        $this->rows['soputka'] = $row->setConnect(Category::class, 'get_soputka')
+            ->setAttached()->setAllowEmpty()->setFillable();
 
         $row = new FormInput('description_link', 'ID материала Feed для описания');
         $this->rows['description_link'] = $row->setCssClassGroup('uk-width-1-2 uk-width-medium-1-3 uk-width-large-1-4')->setFillable();

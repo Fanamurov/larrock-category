@@ -6,6 +6,7 @@ use Cache;
 use Illuminate\Database\Eloquent\Model;
 use Larrock\Core\Helpers\Plugins\RenderPlugins;
 use Larrock\Core\Traits\GetFilesAndImages;
+use Larrock\Core\Traits\GetLink;
 use Larrock\Core\Traits\GetSeo;
 use Larrock\Core\Component;
 use LarrockUsers;
@@ -17,7 +18,6 @@ use Larrock\ComponentCatalog\Facades\LarrockCatalog;
 use Larrock\ComponentFeed\Facades\LarrockFeed;
 use Larrock\ComponentDiscount\Facades\LarrockDiscount;
 use Larrock\Core\Models\Seo;
-use Spatie\MediaLibrary\Media;
 
 /**
  * App\Models\Category
@@ -94,11 +94,12 @@ class Category extends Model implements HasMediaConversions
     use HasMediaTrait;
     use GetFilesAndImages;
     use GetSeo;
+    use GetLink;
 
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
-        $this->fillable(LarrockCategory::addFillableUserRows(['title', 'short', 'description', 'component', 'parent', 'level', 'url', 'sitemap', 'rss', 'position', 'active']));
+        $this->fillable(LarrockCategory::addFillableUserRows([]));
         $this->config = LarrockCategory::getConfig();
         $this->table = LarrockCategory::getTable();
     }

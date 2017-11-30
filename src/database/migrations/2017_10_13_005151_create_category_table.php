@@ -30,6 +30,8 @@ class CreateCategoryTable extends Migration {
 			$table->integer('user_id')->unsigned()->nullable()->index('category_user_id_foreign');
 			$table->integer('attached')->default(0);
 			$table->timestamps();
+
+            $table->index(['url', 'active']);
 		});
 	}
 
