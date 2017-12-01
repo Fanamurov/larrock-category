@@ -2,7 +2,6 @@
 
 namespace Larrock\ComponentCategory;
 
-use Breadcrumbs;
 use Cache;
 use Illuminate\Http\Request;
 use Larrock\Core\Component;
@@ -24,12 +23,9 @@ class AdminCategoryController extends Controller
 
     public function __construct()
     {
+        $this->middleware(LarrockSeo::combineAdminMiddlewares());
         $this->config = LarrockCategory::shareConfig();
-
         \Config::set('breadcrumbs.view', 'larrock::admin.breadcrumb.breadcrumb');
-        Breadcrumbs::register('admin.'. LarrockCategory::getName() .'.index', function($breadcrumbs){
-            $breadcrumbs->push(LarrockCategory::getTitle(), '/admin/'. LarrockCategory::getName());
-        });
     }
 
     /**
