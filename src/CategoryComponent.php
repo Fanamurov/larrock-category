@@ -45,8 +45,8 @@ class CategoryComponent extends Component
         $row = new FormTextarea('description', 'Полное описание');
         $this->rows['description'] = $row->setTypo()->setFillable();
 
-        $row = new FormHidden('type', 'Тип раздела');
-        $this->rows['type'] = $row->setDefaultValue('type')->setFillable();
+        $row = new FormHidden('component', 'Компонент');
+        $this->rows['component'] = $row->setFillable();
 
         $row = new FormHidden('level', 'Уровень вложенности раздела');
         $this->rows['level'] = $row->setDefaultValue('level')->setFillable();
@@ -56,10 +56,6 @@ class CategoryComponent extends Component
 
         $row = new FormCheckbox('rss', 'Публиковать ли в rss');
         $this->rows['rss'] = $row->setDefaultValue(0)->setTab('seo', 'Seo')->setFillable();
-
-        $row = new FormCategory('soputka', 'Сопутствующие разделы');
-        $this->rows['soputka'] = $row->setConnect(Category::class, 'get_soputka')
-            ->setAttached()->setAllowEmpty()->setFillable();
 
         $row = new FormInput('description_link', 'ID материала Feed для описания');
         $this->rows['description_link'] = $row->setCssClassGroup('uk-width-1-2 uk-width-medium-1-3 uk-width-large-1-4')->setFillable();
