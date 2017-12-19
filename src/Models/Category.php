@@ -20,7 +20,7 @@ use Larrock\ComponentDiscount\Facades\LarrockDiscount;
 use Larrock\Core\Models\Seo;
 
 /**
- * App\Models\Category
+ * Larrock\ComponentCategory\Models\Category
  *
  * @property integer $id
  * @property string $title
@@ -77,8 +77,6 @@ use Larrock\Core\Models\Seo;
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category whereAttached($value)
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category search($search, $threshold = null, $entireText = false, $entireTextOnly = false)
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category searchRestricted($search, $restriction, $threshold = null, $entireText = false, $entireTextOnly = false)
- * @property string $component
- * @property integer $discount_id
  * @property-read mixed $get_seo_title
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category whereComponent($value)
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category whereDiscountId($value)
@@ -154,12 +152,14 @@ class Category extends Model implements HasMediaConversions
 
     public function get_child()
     {
-        return $this->hasMany(LarrockCategory::getModelName(), 'parent', 'id')->orderBy('position', 'DESC')->orderBy('updated_at', 'ASC');
+        return $this->hasMany(LarrockCategory::getModelName(), 'parent', 'id')
+            ->orderBy('position', 'DESC')->orderBy('updated_at', 'ASC');
     }
 
     public function get_childActive()
     {
-        return $this->hasMany(LarrockCategory::getModelName(), 'parent', 'id')->whereActive(1)->orderBy('position', 'DESC')->orderBy('updated_at', 'ASC');
+        return $this->hasMany(LarrockCategory::getModelName(), 'parent', 'id')->whereActive(1)
+            ->orderBy('position', 'DESC')->orderBy('updated_at', 'ASC');
     }
 
     public function getParentTreeAttribute()
@@ -172,6 +172,11 @@ class Category extends Model implements HasMediaConversions
         return $list;
     }
 
+    /**
+     * @param $category Category
+     * @param array $list
+     * @return array
+     */
     protected function iterate_tree($category, $list = [])
     {
         if($get_data = $category->get_parent()->first()){
@@ -191,6 +196,11 @@ class Category extends Model implements HasMediaConversions
         return $list;
     }
 
+    /**
+     * @param $category Category
+     * @param array $list
+     * @return array
+     */
     protected function iterate_tree_active($category, $list = [])
     {
         if($get_data = $category->get_parentActive()->first()){
@@ -236,12 +246,14 @@ class Category extends Model implements HasMediaConversions
 
     public function get_tovars()
     {
-        return $this->belongsToMany(LarrockCatalog::getModelName(), 'category_catalog', 'category_id', 'catalog_id')->orderBy('position', 'DESC')->orderBy('updated_at', 'ASC');
+        return $this->belongsToMany(LarrockCatalog::getModelName(), 'category_catalog', 'category_id', 'catalog_id')
+            ->orderBy('position', 'DESC')->orderBy('updated_at', 'ASC');
     }
 
     public function get_tovarsActive()
     {
-        return $this->belongsToMany(LarrockCatalog::getModelName(), 'category_catalog', 'category_id', 'catalog_id')->whereActive(1)->orderBy('position', 'DESC')->orderBy('cost', 'DESC');
+        return $this->belongsToMany(LarrockCatalog::getModelName(), 'category_catalog', 'category_id', 'catalog_id')
+            ->whereActive(1)->orderBy('position', 'DESC')->orderBy('cost', 'DESC');
     }
 
     public function get_tovarsCount()
@@ -266,12 +278,14 @@ class Category extends Model implements HasMediaConversions
 
     public function get_soputka()
     {
-        return $this->belongsToMany(LarrockCategory::getModelName(), 'category_link', 'category_id', 'category_id_link')->orderBy('position', 'DESC');
+        return $this->belongsToMany(LarrockCategory::getModelName(), 'category_link', 'category_id', 'category_id_link')
+            ->orderBy('position', 'DESC');
     }
 
     public function get_soputkaTovars()
     {
-        $find_categories = $this->belongsToMany(LarrockCategory::getModelName(), 'category_link', 'category_id', 'category_id_link')->orderBy('position', 'DESC')->get(['id']);
+        $find_categories = $this->belongsToMany(LarrockCategory::getModelName(), 'category_link', 'category_id', 'category_id_link')
+            ->orderBy('position', 'DESC')->get(['id']);
         $list_categories = [];
         foreach($find_categories as $category){
             $list_categories[] = $category->id;

@@ -6,5 +6,5 @@ Route::group(['prefix' => 'admin'], function(){
 });
 
 Breadcrumbs::register('admin.'. LarrockCategory::getName() .'.index', function($breadcrumbs){
-    $breadcrumbs->push(LarrockCategory::getTitle(), '/admin/'. LarrockCategory::getName());
+    $breadcrumbs->push(LarrockCategory::getTitle() .' /');
 });
