@@ -23,7 +23,7 @@ class AdminCategoryController extends Controller
 
     public function __construct()
     {
-        $this->middleware(LarrockSeo::combineAdminMiddlewares());
+        $this->middleware(LarrockCategory::combineAdminMiddlewares());
         $this->config = LarrockCategory::shareConfig();
         \Config::set('breadcrumbs.view', 'larrock::admin.breadcrumb.breadcrumb');
     }
