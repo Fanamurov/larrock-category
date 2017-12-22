@@ -10,6 +10,7 @@ use Lang;
 use Larrock\ComponentCategory\Facades\LarrockCategory;
 use Larrock\ComponentCatalog\Facades\LarrockCatalog;
 use Larrock\Core\Traits\AdminMethodsEdit;
+use Larrock\Core\Traits\ShareMethods;
 use LarrockFeed;
 use Redirect;
 use Session;
@@ -17,12 +18,13 @@ use Validator;
 
 class AdminCategoryController extends Controller
 {
-    use AdminMethodsEdit;
+    use AdminMethodsEdit, ShareMethods;
 
     protected $current_user;
 
     public function __construct()
     {
+        $this->shareMethods();
         $this->middleware(LarrockCategory::combineAdminMiddlewares());
         $this->config = LarrockCategory::shareConfig();
         \Config::set('breadcrumbs.view', 'larrock::admin.breadcrumb.breadcrumb');
