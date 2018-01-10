@@ -86,7 +86,7 @@ class Category extends Model implements HasMediaConversions
     /**
      * @var $this Component
      */
-    public $config;
+    protected $config;
     
     use SearchableTrait;
     use HasMediaTrait;
