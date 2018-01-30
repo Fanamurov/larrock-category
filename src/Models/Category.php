@@ -251,19 +251,25 @@ class Category extends Model implements HasMediaConversions
 
     public function get_tovars()
     {
-        return $this->belongsToMany(LarrockCatalog::getModelName(), 'category_catalog', 'category_id', 'catalog_id')
+        return $this->belongsToMany(LarrockCatalog::getModelName(), 'link', 'id_child', 'id_parent')
+            ->where('model_parent', '=', LarrockCatalog::getModelName())
+            ->where('model_child', '=', LarrockCategory::getModelName())
             ->orderBy('position', 'DESC')->orderBy('updated_at', 'ASC');
     }
 
     public function get_tovarsActive()
     {
-        return $this->belongsToMany(LarrockCatalog::getModelName(), 'category_catalog', 'category_id', 'catalog_id')
+        return $this->belongsToMany(LarrockCatalog::getModelName(), 'link', 'id_child', 'id_parent')
+            ->where('model_parent', '=', LarrockCatalog::getModelName())
+            ->where('model_child', '=', LarrockCategory::getModelName())
             ->whereActive(1)->orderBy('position', 'DESC')->orderBy('cost', 'DESC');
     }
 
     public function get_tovarsCount()
     {
-        return $this->belongsToMany(LarrockCatalog::getModelName(), 'category_catalog', 'category_id', 'catalog_id')->count();
+        return $this->belongsToMany(LarrockCatalog::getModelName(), 'link', 'id_child', 'id_parent')
+            ->where('model_parent', '=', LarrockCatalog::getModelName())
+            ->where('model_child', '=', LarrockCategory::getModelName())->count();
     }
 
     public function getShortWrapAttribute()
@@ -281,25 +287,6 @@ class Category extends Model implements HasMediaConversions
         return $this->hasMany(LarrockFeed::getModelName(), 'category', 'id')->whereActive(1)->orderBy('position', 'DESC');
     }
 
-    public function get_soputka()
-    {
-        return $this->belongsToMany(LarrockCategory::getModelName(), 'category_link', 'category_id', 'category_id_link')
-            ->orderBy('position', 'DESC');
-    }
-
-    public function get_soputkaTovars()
-    {
-        $find_categories = $this->belongsToMany(LarrockCategory::getModelName(), 'category_link', 'category_id', 'category_id_link')
-            ->orderBy('position', 'DESC')->get(['id']);
-        $list_categories = [];
-        foreach($find_categories as $category){
-            $list_categories[] = $category->id;
-        }
-        return LarrockCatalog::getModel()->whereActive(1)->whereHas('category', function ($q) use ($list_categories){
-            $q->whereIn('category.id', $list_categories);
-        })->get();
-    }
-
     public function get_discount()
     {
         return $this->hasOne(LarrockDiscount::getModelName(), 'id', 'discount_id');
@@ -307,7 +294,6 @@ class Category extends Model implements HasMediaConversions
 
     /**
      * Замена тегов плагинов на их данные
-     *
      * @return mixed
      */
     public function getShortRenderAttribute()
@@ -326,7 +312,6 @@ class Category extends Model implements HasMediaConversions
 
     /**
      * Замена тегов плагинов на их данные
-     *
      * @return mixed
      */
     public function getDescriptionRenderAttribute()

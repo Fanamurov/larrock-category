@@ -5,6 +5,7 @@ namespace Larrock\ComponentCategory;
 use Cache;
 use Larrock\Core\Component;
 use Larrock\Core\Helpers\FormBuilder\FormCategory;
+use Larrock\Core\Helpers\FormBuilder\FormTags;
 use Larrock\Core\Helpers\FormBuilder\FormCheckbox;
 use Larrock\Core\Helpers\FormBuilder\FormHidden;
 use Larrock\Core\Helpers\FormBuilder\FormInput;

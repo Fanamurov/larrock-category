@@ -232,17 +232,16 @@ class AdminCategoryController extends Controller
             }
 
             if($allowDestroy){
-                $this->destroyTovars($data, $request);
-                $this->destroyFeeds($data, $request);
-                $this->destroyChilds($data, $request);
+                $this->destroyTovars($data);
+                $this->destroyFeeds($data);
+                $this->destroyChilds($data);
 
                 $name = $data->title;
                 $data->clearMediaCollection();
-                LarrockCategory::actionAttach(LarrockCategory::getConfig(), $data, $request);
+                LarrockCategory::removeDataPlugins(LarrockCategory::getConfig(), $data);
 
                 if($data->delete()){
                     \Cache::flush();
-
                     Session::push('message.success', Lang::get('larrock::apps.delete.success', ['name' => $name]));
                 }else{
                     Session::push('message.danger', 'Раздел не удален');
@@ -257,20 +256,19 @@ class AdminCategoryController extends Controller
     /**
      * Удаление потомков разделов и их связей
      * @param $data
-     * @param $request
      */
-    protected function destroyChilds($data, $request)
+    protected function destroyChilds($data)
     {
         if($data->get_child()->count() > 0){
             foreach ($data->get_child()->get() as $child){
                 if($child->get_child()->count() > 0){
-                    $this->destroyChilds($child, $request);
+                    $this->destroyChilds($child);
                 }
                 $child_name = $child->title;
                 $child->clearMediaCollection();
-                $this->destroyTovars($child, $request);
-                $this->destroyFeeds($child, $request);
-                LarrockCategory::actionAttach(LarrockCategory::getConfig(), $child, $request);
+                $this->destroyTovars($child);
+                $this->destroyFeeds($child);
+                LarrockCategory::removeDataPlugins(LarrockCategory::getConfig(), $child);
                 if($child->delete()){
                     Session::push('message.success', Lang::get('larrock::apps.delete.success', ['name' => $child_name]));
                 }
@@ -282,15 +280,14 @@ class AdminCategoryController extends Controller
      * Удаление товаров каталога в удалеяемых разделах
      *
      * @param $data
-     * @param $request
      */
-    protected function destroyTovars($data, $request)
+    protected function destroyTovars($data)
     {
         if(file_exists(base_path(). '/vendor/fanamurov/larrock-catalog') && $data->get_tovars()->count() > 0){
             foreach ($data->get_tovars()->get() as $tovar){
                 $tovar_name = $tovar->title;
                 $tovar->clearMediaCollection();
-                LarrockCatalog::actionAttach(LarrockCatalog::getConfig(), $tovar, $request);
+                LarrockCatalog::removeDataPlugins(LarrockCatalog::getConfig(), $tovar);
                 if($tovar->delete()){
                     Session::push('message.success', Lang::get('larrock::apps.delete.success', ['name' => $tovar_name]));
                 }
@@ -302,15 +299,14 @@ class AdminCategoryController extends Controller
     /**
      * Удаление матераилов лент ил удаляемых разделов
      * @param $data
-     * @param $request
      */
-    protected function destroyFeeds($data, $request)
+    protected function destroyFeeds($data)
     {
         if(file_exists(base_path(). '/vendor/fanamurov/larrock-feed') && $data->get_feed()->count() > 0){
             foreach ($data->get_feed()->get() as $feed){
                 $feed_name = $feed->title;
                 $feed->clearMediaCollection();
-                LarrockFeed::actionAttach(LarrockFeed::getConfig(), $feed, $request);
+                LarrockFeed::removeDataPlugins(LarrockFeed::getConfig(), $feed);
                 if($feed->delete()){
                     Session::push('message.success', Lang::get('larrock::apps.delete.success', ['name' => $feed_name]));
                 }
