@@ -78,9 +78,9 @@ class CategoryComponent extends Component
         return Cache::remember('search'. $this->name. $admin, 1440, function() use ($admin){
             $data = [];
             if($admin){
-                $items = LarrockCategory::getModel()->with(['get_parent'])->get(['id', 'title', 'parent', 'component', 'url']);
+                $items = LarrockCategory::getModel()->with(['get_parent'])->get();
             }else{
-                $items = LarrockCategory::getModel()->whereActive(1)->with(['get_parentActive'])->get(['id', 'title', 'parent', 'component', 'url']);
+                $items = LarrockCategory::getModel()->whereActive(1)->with(['get_parentActive'])->get();
             }
             foreach ($items as $item){
                 $data[$item->id]['id'] = $item->id;

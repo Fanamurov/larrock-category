@@ -169,7 +169,7 @@ class Category extends Model implements HasMediaConversions
 
     public function getParentTreeAttribute()
     {
-        $key = 'tree_category'. $this->id;
+        $key = 'tree_categoryAttr'. $this->id;
         $list = Cache::remember($key, 1440, function() {
             $list[] = $this;
             return $this->iterate_tree($this, $list);
@@ -198,6 +198,9 @@ class Category extends Model implements HasMediaConversions
             $list[] = $this;
             return $this->iterate_tree_active($this, $list);
         });
+        if(collect($list)->first()->level !== 1){
+            return NULL;
+        }
         return $list;
     }
 
