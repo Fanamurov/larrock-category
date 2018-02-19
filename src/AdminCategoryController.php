@@ -9,6 +9,7 @@ use Illuminate\Routing\Controller;
 use Lang;
 use Larrock\ComponentCategory\Facades\LarrockCategory;
 use Larrock\ComponentCatalog\Facades\LarrockCatalog;
+use Larrock\Core\Traits\AdminMethodsCreate;
 use Larrock\Core\Traits\AdminMethodsEdit;
 use Larrock\Core\Traits\ShareMethods;
 use LarrockFeed;
@@ -18,7 +19,7 @@ use Validator;
 
 class AdminCategoryController extends Controller
 {
-    use AdminMethodsEdit, ShareMethods;
+    use AdminMethodsEdit, AdminMethodsCreate, ShareMethods;
 
     protected $current_user;
 
@@ -28,79 +29,6 @@ class AdminCategoryController extends Controller
         $this->middleware(LarrockCategory::combineAdminMiddlewares());
         $this->config = LarrockCategory::shareConfig();
         \Config::set('breadcrumbs.view', 'larrock::admin.breadcrumb.breadcrumb');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @param Request                     $request
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create(Request $request)
-    {
-        if( !$category = LarrockCategory::getModel()->whereType('feed')->first()){
-            LarrockCategory::create(['title' => 'Новый материал', 'url' => str_slug('Новый материал')]);
-            $category = LarrockCategory::getModel()->whereType('feed')->first();
-        }
-        Cache::flush();
-        $test = Request::create('/admin/category', 'POST', [
-            'title' => 'Новый материал',
-            'url' => str_slug('novyy-material'),
-            'category' => $request->get('category', $category->id),
-            'active' => 0
-        ]);
-        return $this->store($test);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request $request
-     *
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), LarrockCategory::getValid());
-        if($validator->fails()){
-            return back()->withInput($request->except('password'))->withErrors($validator);
-        }
-
-        $data = LarrockCategory::getModel()->fill($request->all());
-        foreach ($this->config->rows as $row){
-            if(get_class($row) === 'Larrock\Core\Helpers\FormBuilder\FormCheckbox'){
-                $data->{$row->name} = $request->input($row->name, NULL);
-            }
-            if(get_class($row) === 'Larrock\Core\Helpers\FormBuilder\FormDate'){
-                $data->{$row->name} = $request->input('date', date('Y-m-d'));
-            }
-        }
-        $data->level = 0;
-        $data->user_id = $request->user()->id;
-
-        if($request->input('parent') !== 0){
-            if($get_parent = LarrockCategory::getModel()->find($request->input('parent'))->first()){
-                $data->level = (int) $get_parent->level +1;
-            }
-        }
-
-        //Проверяем уникальность url
-        if(LarrockCategory::getModel()->whereUrl($data->url)->first()){
-            $data->url = $data->url .'-'. random_int(0,9999);
-        }
-
-        if($data->parent === 0){
-            $data->parent = NULL;
-        }
-
-        if($data->save()){
-            Session::push('message.success', 'Материал '. $request->input('title') .' добавлен');
-            return Redirect::to('/admin/'. LarrockCategory::getName() .'/'. $data->id .'/edit')->withInput();
-        }
-
-        Session::push('message.danger', 'Материал '. $request->input('title') .' не добавлен');
-        return back()->withInput();
     }
 
     /**
@@ -135,10 +63,6 @@ class AdminCategoryController extends Controller
         //Проверяем уникальность url
         if(LarrockCategory::getModel()->whereUrl($data->url)->first()){
             $data->url = $data->url .'-'. random_int(0,9999);
-        }
-
-        if($data->parent === 0){
-            $data->parent = NULL;
         }
 
         if($data->save()){

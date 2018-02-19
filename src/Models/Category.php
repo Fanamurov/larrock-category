@@ -111,6 +111,7 @@ class Category extends Model implements HasMediaConversions
         'parent' => 'integer',
         'to_rss' => 'integer',
         'sharing' => 'integer',
+        'user_id' => 'integer',
     ];
 
     protected $appends = [
@@ -118,8 +119,6 @@ class Category extends Model implements HasMediaConversions
         'class_element',
         'first_image'
     ];
-
-    protected $guarded = ['user_id'];
 
     // no need for this, but you can define default searchable columns:
     protected $searchable = [
@@ -131,6 +130,13 @@ class Category extends Model implements HasMediaConversions
     public function getConfig()
     {
         return $this->config;
+    }
+
+    public function setParentAttribute($param)
+    {
+        if(empty($param) || $param === 0){
+            $this->parent = NULL;
+        }
     }
 
     public function getGetParentSeoTitleAttribute()
