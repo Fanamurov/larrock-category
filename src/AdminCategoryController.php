@@ -60,6 +60,10 @@ class AdminCategoryController extends Controller
             $data->level = 1;
         }
 
+        if(empty($data->parent) || $data->parent === 0){
+            $data->parent = NULL;
+        }
+
         //Проверяем уникальность url
         if(LarrockCategory::getModel()->whereUrl($data->url)->first()){
             $data->url = $data->url .'-'. random_int(0,9999);

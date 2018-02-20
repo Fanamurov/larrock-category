@@ -132,13 +132,6 @@ class Category extends Model implements HasMediaConversions
         return $this->config;
     }
 
-    public function setParentAttribute($param)
-    {
-        if(empty($param) || $param === 0){
-            $this->parent = NULL;
-        }
-    }
-
     public function getGetParentSeoTitleAttribute()
     {
         if($get_seo = Seo::whereSeoIdConnect($this->parent)->first()){
