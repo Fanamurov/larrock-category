@@ -4,11 +4,13 @@ namespace Larrock\ComponentCategory;
 
 use Cache;
 use Illuminate\Http\Request;
+use Larrock\ComponentCategory\Models\Category;
 use Larrock\Core\Component;
 use Illuminate\Routing\Controller;
 use Lang;
 use Larrock\ComponentCategory\Facades\LarrockCategory;
 use Larrock\ComponentCatalog\Facades\LarrockCatalog;
+use Larrock\Core\Helpers\MessageLarrock;
 use Larrock\Core\Traits\AdminMethodsCreate;
 use Larrock\Core\Traits\AdminMethodsEdit;
 use Larrock\Core\Traits\ShareMethods;
@@ -33,10 +35,9 @@ class AdminCategoryController extends Controller
 
     /**
      * Light store a newly created resource in storage.
-     *
-     * @param Request        $request
-     *
+     * @param Request $request
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\Response
+     * @throws \Illuminate\Database\Eloquent\MassAssignmentException
      */
     public function storeEasy(Request $request)
     {
@@ -71,21 +72,19 @@ class AdminCategoryController extends Controller
 
         if($data->save()){
             \Cache::flush();
-            Session::push('message.success', 'Раздел '. $request->input('title') .' добавлен');
+            MessageLarrock::success('Раздел '. $request->input('title') .' добавлен');
             return back()->withInput();
         }
-
-        Session::push('message.danger', 'Раздел '. $request->input('title') .' не добавлен');
+        MessageLarrock::danger('Раздел '. $request->input('title') .' не добавлен');
         return back()->withInput();
     }
 
     /**
      * Update the specified resource in storage.
-     *
      * @param  \Illuminate\Http\Request $request
-     * @param  int                      $id
-     *
+     * @param  int $id
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\Response
+     * @throws \Illuminate\Database\Eloquent\MassAssignmentException
      */
     public function update(Request $request, $id)
     {
@@ -97,11 +96,11 @@ class AdminCategoryController extends Controller
         $data = LarrockCategory::getModel()->find($id);
         $data->fill($request->all());
         foreach (LarrockCategory::getRows() as $row){
-            if(in_array($row->name, $data->getFillable())){
-                if(get_class($row) === 'Larrock\Core\Helpers\FormBuilder\FormCheckbox'){
+            if(\in_array($row->name, $data->getFillable())){
+                if(\get_class($row) === 'Larrock\Core\Helpers\FormBuilder\FormCheckbox'){
                     $data->{$row->name} = $request->input($row->name, NULL);
                 }
-                if(get_class($row) === 'Larrock\Core\Helpers\FormBuilder\FormDate'){
+                if(\get_class($row) === 'Larrock\Core\Helpers\FormBuilder\FormDate'){
                     $data->{$row->name} = $request->input('date', date('Y-m-d'));
                 }
             }
@@ -119,18 +118,16 @@ class AdminCategoryController extends Controller
             LarrockCategory::actionAttach(LarrockCategory::getConfig(), $data, $request);
             LarrockCategory::savePluginSeoData($request);
 
-            Session::push('message.success', Lang::get('larrock::apps.update.success', ['name' => $request->input('title')]));
+            MessageLarrock::success(Lang::get('larrock::apps.update.success', ['name' => $request->input('title')]));
             \Cache::flush();
             return back();
         }
-        Session::push('message.danger', Lang::get('larrock::apps.update.nothing', ['name' => $request->input('title')]));
-
+        MessageLarrock::danger(Lang::get('larrock::apps.update.nothing', ['name' => $request->input('title')]));
         return back()->withInput();
     }
 
     /**
      * Remove the specified resource from storage.
-     *
      * @param Request $request
      * @param  int $id
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\Response
@@ -170,20 +167,20 @@ class AdminCategoryController extends Controller
 
                 if($data->delete()){
                     \Cache::flush();
-                    Session::push('message.success', Lang::get('larrock::apps.delete.success', ['name' => $name]));
+                    MessageLarrock::success(Lang::get('larrock::apps.delete.success', ['name' => $name]));
                 }else{
-                    Session::push('message.danger', 'Раздел не удален');
+                    MessageLarrock::danger('Раздел не удален');
                 }
             }
         }else{
-            Session::push('message.danger', 'Такого раздела больше нет');
+            MessageLarrock::danger('Такого раздела больше нет');
         }
         return back()->withInput();
     }
 
     /**
      * Удаление потомков разделов и их связей
-     * @param $data
+     * @param Category $data
      */
     protected function destroyChilds($data)
     {
@@ -198,15 +195,14 @@ class AdminCategoryController extends Controller
                 $this->destroyFeeds($child);
                 LarrockCategory::removeDataPlugins(LarrockCategory::getConfig(), $child);
                 if($child->delete()){
-                    Session::push('message.success', Lang::get('larrock::apps.delete.success', ['name' => $child_name]));
+                    MessageLarrock::success(Lang::get('larrock::apps.delete.success', ['name' => $child_name]));
                 }
             }
         }
     }
 
     /**
-     * Удаление товаров каталога в удалеяемых разделах
-     *
+     * Удаление товаров каталога в удаляемых разделах
      * @param $data
      */
     protected function destroyTovars($data)
@@ -217,7 +213,7 @@ class AdminCategoryController extends Controller
                 $tovar->clearMediaCollection();
                 LarrockCatalog::removeDataPlugins(LarrockCatalog::getConfig(), $tovar);
                 if($tovar->delete()){
-                    Session::push('message.success', Lang::get('larrock::apps.delete.success', ['name' => $tovar_name]));
+                    MessageLarrock::success(Lang::get('larrock::apps.delete.success', ['name' => $tovar_name]));
                 }
             }
         }
@@ -236,7 +232,7 @@ class AdminCategoryController extends Controller
                 $feed->clearMediaCollection();
                 LarrockFeed::removeDataPlugins(LarrockFeed::getConfig(), $feed);
                 if($feed->delete()){
-                    Session::push('message.success', Lang::get('larrock::apps.delete.success', ['name' => $feed_name]));
+                    MessageLarrock::success(Lang::get('larrock::apps.delete.success', ['name' => $feed_name]));
                 }
             }
         }

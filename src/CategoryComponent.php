@@ -5,7 +5,6 @@ namespace Larrock\ComponentCategory;
 use Cache;
 use Larrock\Core\Component;
 use Larrock\Core\Helpers\FormBuilder\FormCategory;
-use Larrock\Core\Helpers\FormBuilder\FormTags;
 use Larrock\Core\Helpers\FormBuilder\FormCheckbox;
 use Larrock\Core\Helpers\FormBuilder\FormHidden;
 use Larrock\Core\Helpers\FormBuilder\FormInput;
@@ -68,14 +67,14 @@ class CategoryComponent extends Component
     {
         $tree = new Tree();
         if($activeCategory = $tree->listActiveCategories(LarrockCategory::getModel()->whereActive(1)->whereSitemap(1)->whereParent(NULL)->get())){
-            return LarrockCategory::getModel()->whereActive(1)->whereSitemap(1)->whereIn(LarrockCategory::getConfig()->table .'.id', $activeCategory)->get();
+            return LarrockCategory::getModel()->whereActive(1)->whereSitemap(1)->whereIn(LarrockCategory::getTable() .'.id', $activeCategory)->get();
         }
         return [];
     }
 
     public function search($admin = NULL)
     {
-        return Cache::remember('search'. $this->name. $admin, 1440, function() use ($admin){
+        return Cache::rememberForever('search'. $this->name. $admin, function() use ($admin){
             $data = [];
             if($admin){
                 $items = LarrockCategory::getModel()->with(['get_parent'])->get();
@@ -98,7 +97,7 @@ class CategoryComponent extends Component
                     }
                 }
             }
-            if(count($data) === 0){
+            if(\count($data) === 0){
                 return NULL;
             }
             return $data;

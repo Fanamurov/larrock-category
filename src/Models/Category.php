@@ -64,17 +64,18 @@ use Larrock\Core\Models\Seo;
  * @property-read mixed $first_image
  * @property-read mixed $map_coordinate
  * @property-read \Illuminate\Database\Eloquent\Collection|\Spatie\MediaLibrary\Media[] $media
- * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category whereForecastUrl($value)
- * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category whereMap($value)
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category whereUserId($value)
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category whereToRss($value)
- * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category whereSharing($value)
- * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category whereLoads($value)
  * @mixin \Eloquent
  * @property integer $attached
+ * @property mixed $description_render
+ * @property mixed $short_render
+ * @property mixed $get_discount
+ * @property mixed $get_parent
+ * @property mixed|string $get_parent_seo_title
+ * @property mixed|null $parent_tree_active
  * @property-read mixed $seotitle
  * @property-read mixed $parent_tree
- * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category whereAttached($value)
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category search($search, $threshold = null, $entireText = false, $entireTextOnly = false)
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category searchRestricted($search, $restriction, $threshold = null, $entireText = false, $entireTextOnly = false)
  * @property-read mixed $get_seo_title
@@ -132,6 +133,9 @@ class Category extends Model implements HasMediaConversions
         return $this->config;
     }
 
+    /**
+     * @return mixed|string
+     */
     public function getGetParentSeoTitleAttribute()
     {
         if($get_seo = Seo::whereSeoIdConnect($this->parent)->first()){
@@ -315,6 +319,7 @@ class Category extends Model implements HasMediaConversions
     /**
      * Замена тегов плагинов на их данные
      * @return mixed
+     * @throws \Throwable
      */
     public function getDescriptionRenderAttribute()
     {
