@@ -2,26 +2,25 @@
 
 namespace Larrock\ComponentCategory;
 
-use Cache;
 use Illuminate\Http\Request;
 use Larrock\ComponentCategory\Models\Category;
 use Larrock\Core\Component;
 use Illuminate\Routing\Controller;
 use Lang;
-use Larrock\ComponentCategory\Facades\LarrockCategory;
-use Larrock\ComponentCatalog\Facades\LarrockCatalog;
+use Larrock\Core\Traits\AdminMethodsDestroy;
+use LarrockCategory;
+use LarrockCatalog;
 use Larrock\Core\Helpers\MessageLarrock;
 use Larrock\Core\Traits\AdminMethodsCreate;
 use Larrock\Core\Traits\AdminMethodsEdit;
 use Larrock\Core\Traits\ShareMethods;
 use LarrockFeed;
-use Redirect;
 use Session;
 use Validator;
 
 class AdminCategoryController extends Controller
 {
-    use AdminMethodsEdit, AdminMethodsCreate, ShareMethods;
+    use AdminMethodsEdit, AdminMethodsCreate, AdminMethodsDestroy, ShareMethods;
 
     protected $current_user;
 
@@ -38,6 +37,7 @@ class AdminCategoryController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\Response
      * @throws \Illuminate\Database\Eloquent\MassAssignmentException
+     * @throws \Exception
      */
     public function storeEasy(Request $request)
     {
@@ -49,7 +49,6 @@ class AdminCategoryController extends Controller
         $data = LarrockCategory::getModel()->fill($request->all());
         $data->active = $request->input('active', 1);
         $data->position = $request->input('position', 0);
-        $data->attached = $request->input('attached', 0);
         $data->url = str_slug($request->input('title'));
         $data->user_id = $request->user()->id;
 
@@ -85,6 +84,7 @@ class AdminCategoryController extends Controller
      * @param  int $id
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\Response
      * @throws \Illuminate\Database\Eloquent\MassAssignmentException
+     * @throws \Exception
      */
     public function update(Request $request, $id)
     {
@@ -97,10 +97,10 @@ class AdminCategoryController extends Controller
         $data->fill($request->all());
         foreach (LarrockCategory::getRows() as $row){
             if(\in_array($row->name, $data->getFillable())){
-                if(\get_class($row) === 'Larrock\Core\Helpers\FormBuilder\FormCheckbox'){
+                if($row instanceof \Larrock\Core\Helpers\FormBuilder\FormCheckbox){
                     $data->{$row->name} = $request->input($row->name, NULL);
                 }
-                if(\get_class($row) === 'Larrock\Core\Helpers\FormBuilder\FormDate'){
+                if($row instanceof \Larrock\Core\Helpers\FormBuilder\FormDate){
                     $data->{$row->name} = $request->input('date', date('Y-m-d'));
                 }
             }
@@ -127,19 +127,18 @@ class AdminCategoryController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove id element
      * @param Request $request
-     * @param  int $id
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\Response
+     * @param $id
+     * @throws \Exception
      */
-    public function destroy(Request $request, $id)
+    protected function destroyElement(Request $request, $id)
     {
         $allowDestroy = TRUE;
-
-        if($data = LarrockCategory::getModel()->with(['get_child'])->find($id)){
+        if($data = $this->config->getModel()::find($id)){
             //Проверка на наличие вложенных разделов или прикрепленных материалов
             if( !$request->has('allowDestroy')){
-                if(count($data->get_child) > 0){
+                if(\count($data->get_child) > 0){
                     Session::push('destroyCategory', 'category/'. $id);
                     Session::push('message.dangerDestroy', 'Раздел содержит в себе другие разделы. Удалить их все?');
                     $allowDestroy = NULL;
@@ -173,9 +172,8 @@ class AdminCategoryController extends Controller
                 }
             }
         }else{
-            MessageLarrock::danger('Такого раздела больше нет');
+            Session::push('message.danger', 'Такого материала больше нет');
         }
-        return back()->withInput();
     }
 
     /**

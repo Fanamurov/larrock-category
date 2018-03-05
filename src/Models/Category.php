@@ -13,10 +13,10 @@ use LarrockUsers;
 use Nicolaslopezj\Searchable\SearchableTrait;
 use Spatie\MediaLibrary\HasMedia\HasMediaTrait;
 use Spatie\MediaLibrary\HasMedia\Interfaces\HasMediaConversions;
-use Larrock\ComponentCategory\Facades\LarrockCategory;
-use Larrock\ComponentCatalog\Facades\LarrockCatalog;
-use Larrock\ComponentFeed\Facades\LarrockFeed;
-use Larrock\ComponentDiscount\Facades\LarrockDiscount;
+use LarrockCategory;
+use LarrockCatalog;
+use LarrockFeed;
+use LarrockDiscount;
 use Larrock\Core\Models\Seo;
 
 /**
@@ -74,6 +74,7 @@ use Larrock\Core\Models\Seo;
  * @property mixed $get_parent
  * @property mixed|string $get_parent_seo_title
  * @property mixed|null $parent_tree_active
+ * @property mixed|null $description_category_on_link
  * @property-read mixed $seotitle
  * @property-read mixed $parent_tree
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category search($search, $threshold = null, $entireText = false, $entireTextOnly = false)
@@ -84,9 +85,7 @@ use Larrock\Core\Models\Seo;
  */
 class Category extends Model implements HasMediaConversions
 {
-    /**
-     * @var $this Component
-     */
+    /** @var $this Component */
     protected $config;
     
     use SearchableTrait;
@@ -173,7 +172,7 @@ class Category extends Model implements HasMediaConversions
     public function getParentTreeAttribute()
     {
         $key = 'tree_categoryAttr'. $this->id;
-        $list = Cache::remember($key, 1440, function() {
+        $list = Cache::rememberForever($key, function() {
             $list[] = $this;
             return $this->iterate_tree($this, $list);
         });
@@ -197,7 +196,7 @@ class Category extends Model implements HasMediaConversions
     public function getParentTreeActiveAttribute()
     {
         $key = 'tree_category_active'. $this->id;
-        $list = Cache::remember($key, 1440, function() {
+        $list = Cache::rememberForever($key, function() {
             $list[] = $this;
             return $this->iterate_tree_active($this, $list);
         });
@@ -233,7 +232,7 @@ class Category extends Model implements HasMediaConversions
 
     public function getFullUrlAttribute()
     {
-        return Cache::remember('url_category'. $this->id, 1440, function() {
+        return Cache::rememberForever('url_category'. $this->id, function() {
             $url = '';
             if($this->component){
                 $url = '/'. $this->component;
@@ -301,6 +300,7 @@ class Category extends Model implements HasMediaConversions
     /**
      * Замена тегов плагинов на их данные
      * @return mixed
+     * @throws \Throwable
      */
     public function getShortRenderAttribute()
     {
@@ -309,7 +309,7 @@ class Category extends Model implements HasMediaConversions
             $cache_key .= '-'. \Auth::user()->role->first()->level;
         }
 
-        return \Cache::remember($cache_key, 1440, function(){
+        return Cache::rememberForever($cache_key, function(){
             $renderPlugins = new RenderPlugins($this->short, $this);
             $render = $renderPlugins->renderBlocks()->renderImageGallery()->renderFilesGallery();
             return $render->rendered_html;
@@ -328,7 +328,7 @@ class Category extends Model implements HasMediaConversions
             $cache_key .= '-'. \Auth::user()->role->first()->level;
         }
 
-        return \Cache::remember($cache_key, 1440, function(){
+        return Cache::rememberForever($cache_key, function(){
             $renderPlugins = new RenderPlugins($this->description, $this);
             $render = $renderPlugins->renderBlocks()->renderImageGallery()->renderFilesGallery();
             return $render->rendered_html;
