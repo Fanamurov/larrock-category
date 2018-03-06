@@ -29,13 +29,13 @@
                 {{ str_limit($data_value->full_url, 35, '...') }}
             </a>
         </td>
-        <td class="row-position uk-hidden-small">
+        <td class="row-position uk-visible@m">
             <input type="text" name="position" value="{{ $data_value->position }}" class="ajax_edit_row uk-form-controls uk-input uk-form-small"
                    data-row_where="id" data-value_where="{{ $data_value->id }}" data-table="category"
                    data-toggle="tooltip" data-placement="bottom" title="Вес. Чем больше, тем выше в списках">
             <i class="uk-sortable-handle uk-icon uk-icon-bars uk-margin-small-right" title="Перенести материал по весу"></i>
         </td>
-        <td class="row-active">
+        <td class="row-active uk-visible@m">
             <div class="uk-button-group btn-group_switch_ajax" role="group" style="width: 100%">
                 <button type="button" class="uk-button uk-button-primary uk-button-small @if($data_value->active === 0) uk-button-outline @endif"
                         data-row_where="id" data-value_where="{{ $data_value->id }}" data-table="category"
@@ -47,10 +47,10 @@
                         data-toggle="tooltip" data-placement="bottom" title="Выключить">off</button>
             </div>
         </td>
-        <td class="row-edit uk-hidden-small">
+        <td class="row-edit uk-visible@m">
             <a href="/admin/category/{{ $data_value->id }}/edit" class="uk-button uk-button-default uk-button-small">Свойства</a>
         </td>
-        <td class="row-delete uk-hidden-small">
+        <td class="row-delete uk-visible@m">
             <form action="/admin/category/{{ $data_value->id }}" method="post">
                 <input name="_method" type="hidden" value="DELETE">
                 {!! csrf_field() !!}
