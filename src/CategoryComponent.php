@@ -33,7 +33,7 @@ class CategoryComponent extends Component
     protected function addRows()
     {
         $row = new FormCategory('parent', 'Родительский раздел');
-        $this->rows['parent'] = $row->setConnect(Category::class, 'get_category')
+        $this->rows['parent'] = $row->setConnect(Category::class, 'getCategory')
             ->setMaxItems(1)->setDefaultValue(NULL)->setFillable();
 
         $row = new FormInput('title', 'Заголовок');
@@ -77,9 +77,9 @@ class CategoryComponent extends Component
         return Cache::rememberForever('search'. $this->name. $admin, function() use ($admin){
             $data = [];
             if($admin){
-                $items = LarrockCategory::getModel()->with(['get_parent'])->get();
+                $items = LarrockCategory::getModel()->with(['getParent'])->get();
             }else{
-                $items = LarrockCategory::getModel()->whereActive(1)->with(['get_parentActive'])->get();
+                $items = LarrockCategory::getModel()->whereActive(1)->with(['getParentActive'])->get();
             }
             foreach ($items as $item){
                 $data[$item->id]['id'] = $item->id;
@@ -88,12 +88,12 @@ class CategoryComponent extends Component
                 $data[$item->id]['component'] = $this->name;
                 $data[$item->id]['category'] = NULL;
                 if($admin){
-                    if($item->get_parent){
-                        $data[$item->id]['category'] = $item->get_parent->title;
+                    if($item->getParent){
+                        $data[$item->id]['category'] = $item->getParent->title;
                     }
                 }else{
-                    if($item->get_parentActive){
-                        $data[$item->id]['category'] = $item->get_parentActive->title;
+                    if($item->getParentActive){
+                        $data[$item->id]['category'] = $item->getParentActive->title;
                     }
                 }
             }

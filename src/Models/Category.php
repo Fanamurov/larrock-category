@@ -71,8 +71,8 @@ use Spatie\MediaLibrary\Media;
  * @property integer $attached
  * @property mixed $description_render
  * @property mixed $short_render
- * @property mixed $get_discount
- * @property mixed $get_parent
+ * @property mixed $getDiscount
+ * @property mixed $getParent
  * @property mixed|string $get_parent_seo_title
  * @property mixed|null $parent_tree_active
  * @property mixed|null $description_category_on_link
@@ -158,13 +158,13 @@ class Category extends Model implements HasMediaConversions
         return NULL;
     }
 
-    public function get_child()
+    public function getChild()
     {
         return $this->hasMany(LarrockCategory::getModelName(), 'parent', 'id')
             ->orderBy('position', 'DESC')->orderBy('updated_at', 'ASC');
     }
 
-    public function get_childActive()
+    public function getChildActive()
     {
         return $this->hasMany(LarrockCategory::getModelName(), 'parent', 'id')->whereActive(1)
             ->orderBy('position', 'DESC')->orderBy('updated_at', 'ASC');
@@ -175,7 +175,7 @@ class Category extends Model implements HasMediaConversions
         $key = 'tree_categoryAttr'. $this->id;
         $list = Cache::rememberForever($key, function() {
             $list[] = $this;
-            return $this->iterate_tree($this, $list);
+            return $this->iterateTree($this, $list);
         });
         return $list;
     }
@@ -185,18 +185,18 @@ class Category extends Model implements HasMediaConversions
      * @param array $list
      * @return array
      */
-    protected function iterate_tree($category, $list = [])
+    protected function iterateTree($category, $list = [])
     {
         $cache_key = sha1('iterate_tree'. $category->id);
         $get_data = Cache::rememberForever($cache_key, function () use ($category) {
-            if($parent = $category->get_parent()->first()){
+            if($parent = $category->getParent()->first()){
                 return $parent;
             }
             return 'empty';
         });
         if($get_data && $get_data !== 'empty'){
             $list[] = $get_data;
-            return $this->iterate_tree($get_data, $list);
+            return $this->iterateTree($get_data, $list);
         }
         return array_reverse($list);
     }
@@ -206,7 +206,7 @@ class Category extends Model implements HasMediaConversions
         $key = 'tree_category_active'. $this->id;
         $list = Cache::rememberForever($key, function() {
             $list[] = $this;
-            return $this->iterate_tree_active($this, $list);
+            return $this->iterateTreeActive($this, $list);
         });
         if(collect($list)->first()->level !== 1){
             return NULL;
@@ -219,11 +219,11 @@ class Category extends Model implements HasMediaConversions
      * @param array $list
      * @return array
      */
-    protected function iterate_tree_active($category, $list = [])
+    protected function iterateTreeActive($category, $list = [])
     {
         $cache_key = sha1('iterate_treeActive'. $category->id);
         $get_data = Cache::rememberForever($cache_key, function () use ($category) {
-            if($parent = $category->get_parentActive()->first()){
+            if($parent = $category->getParentActive()->first()){
                 return $parent;
             }
             return 'empty';
@@ -236,12 +236,12 @@ class Category extends Model implements HasMediaConversions
         return array_reverse($list);
     }
 
-    public function get_parent()
+    public function getParent()
     {
         return $this->hasOne(LarrockCategory::getModelName(), 'id', 'parent');
     }
 
-    public function get_parentActive()
+    public function getParentActive()
     {
         return $this->hasOne(LarrockCategory::getModelName(), 'id', 'parent')->whereActive(1);
     }
@@ -270,7 +270,7 @@ class Category extends Model implements HasMediaConversions
         return LarrockUsers::getModel()->whereId($this->user_id)->first();
     }
 
-    public function get_tovars()
+    public function getGoods()
     {
         return $this->belongsToMany(LarrockCatalog::getModelName(), 'link', 'id_child', 'id_parent')
             ->where('model_parent', '=', LarrockCatalog::getModelName())
@@ -278,7 +278,7 @@ class Category extends Model implements HasMediaConversions
             ->orderBy('position', 'DESC')->orderBy('updated_at', 'ASC');
     }
 
-    public function get_tovarsActive()
+    public function getGoodsActive()
     {
         return $this->belongsToMany(LarrockCatalog::getModelName(), 'link', 'id_child', 'id_parent')
             ->where('model_parent', '=', LarrockCatalog::getModelName())
@@ -286,7 +286,7 @@ class Category extends Model implements HasMediaConversions
             ->whereActive(1)->orderBy('position', 'DESC')->orderBy('cost', 'DESC');
     }
 
-    public function get_tovarsCount()
+    public function getGoodsCount()
     {
         return $this->belongsToMany(LarrockCatalog::getModelName(), 'link', 'id_child', 'id_parent')
             ->where('model_parent', '=', LarrockCatalog::getModelName())
@@ -298,17 +298,17 @@ class Category extends Model implements HasMediaConversions
         return mb_strimwidth($this->short, 0, 200, '...');
     }
 
-    public function get_feed()
+    public function getFeed()
     {
         return $this->hasMany(LarrockFeed::getModelName(), 'category', 'id')->orderBy('position', 'DESC');
     }
 
-    public function get_feedActive()
+    public function getFeedActive()
     {
         return $this->hasMany(LarrockFeed::getModelName(), 'category', 'id')->whereActive(1)->orderBy('position', 'DESC');
     }
 
-    public function get_discount()
+    public function getDiscount()
     {
         return $this->hasOne(LarrockDiscount::getModelName(), 'id', 'discount_id');
     }

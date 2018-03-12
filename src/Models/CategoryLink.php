@@ -5,7 +5,7 @@ namespace Larrock\ComponentCategory\Models;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * App\Models\CategoryCatalog
+ * \Larrock\ComponentCategory\Models\CategoryLink
  *
  * @property integer $category_id
  * @property integer $catalog_id

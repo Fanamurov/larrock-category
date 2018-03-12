@@ -138,17 +138,17 @@ class AdminCategoryController extends Controller
         if($data = $this->config->getModel()::find($id)){
             //Проверка на наличие вложенных разделов или прикрепленных материалов
             if( !$request->has('allowDestroy')){
-                if(\count($data->get_child) > 0){
+                if(\count($data->getChild) > 0){
                     Session::push('destroyCategory', 'category/'. $id);
                     Session::push('message.dangerDestroy', 'Раздел содержит в себе другие разделы. Удалить их все?');
                     $allowDestroy = NULL;
                 }
-                if(file_exists(base_path(). '/vendor/fanamurov/larrock-catalog') && $data->get_tovars()->count() > 0){
+                if(file_exists(base_path(). '/vendor/fanamurov/larrock-catalog') && $data->getGoods()->count() > 0){
                     Session::push('destroyCategory', 'category/'. $id);
                     Session::push('message.dangerDestroy', 'Раздел содержит в себе товары каталога. Удалить их все?');
                     $allowDestroy = NULL;
                 }
-                if(file_exists(base_path(). '/vendor/fanamurov/larrock-feed') && $data->get_feed()->count() > 0){
+                if(file_exists(base_path(). '/vendor/fanamurov/larrock-feed') && $data->getGoods()->count() > 0){
                     Session::push('destroyCategory', 'category/'. $id);
                     Session::push('message.dangerDestroy', 'Раздел содержит в себе материалы лент. Удалить их все?');
                     $allowDestroy = NULL;
@@ -156,7 +156,7 @@ class AdminCategoryController extends Controller
             }
 
             if($allowDestroy){
-                $this->destroyTovars($data);
+                $this->destroyGoods($data);
                 $this->destroyFeeds($data);
                 $this->destroyChilds($data);
 
@@ -182,14 +182,14 @@ class AdminCategoryController extends Controller
      */
     protected function destroyChilds($data)
     {
-        if($data->get_child()->count() > 0){
-            foreach ($data->get_child()->get() as $child){
-                if($child->get_child()->count() > 0){
+        if($data->getChild()->count() > 0){
+            foreach ($data->getChild()->get() as $child){
+                if($child->getChild()->count() > 0){
                     $this->destroyChilds($child);
                 }
                 $child_name = $child->title;
                 $child->clearMediaCollection();
-                $this->destroyTovars($child);
+                $this->destroyGoods($child);
                 $this->destroyFeeds($child);
                 LarrockCategory::removeDataPlugins(LarrockCategory::getConfig(), $child);
                 if($child->delete()){
@@ -203,10 +203,10 @@ class AdminCategoryController extends Controller
      * Удаление товаров каталога в удаляемых разделах
      * @param $data
      */
-    protected function destroyTovars($data)
+    protected function destroyGoods($data)
     {
-        if(file_exists(base_path(). '/vendor/fanamurov/larrock-catalog') && $data->get_tovars()->count() > 0){
-            foreach ($data->get_tovars()->get() as $tovar){
+        if(file_exists(base_path(). '/vendor/fanamurov/larrock-catalog') && $data->getGoods()->count() > 0){
+            foreach ($data->getGoods()->get() as $tovar){
                 $tovar_name = $tovar->title;
                 $tovar->clearMediaCollection();
                 LarrockCatalog::removeDataPlugins(LarrockCatalog::getConfig(), $tovar);
@@ -224,8 +224,8 @@ class AdminCategoryController extends Controller
      */
     protected function destroyFeeds($data)
     {
-        if(file_exists(base_path(). '/vendor/fanamurov/larrock-feed') && $data->get_feed()->count() > 0){
-            foreach ($data->get_feed()->get() as $feed){
+        if(file_exists(base_path(). '/vendor/fanamurov/larrock-feed') && $data->getFeed()->count() > 0){
+            foreach ($data->getFeed()->get() as $feed){
                 $feed_name = $feed->title;
                 $feed->clearMediaCollection();
                 LarrockFeed::removeDataPlugins(LarrockFeed::getConfig(), $feed);
