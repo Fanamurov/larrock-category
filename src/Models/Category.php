@@ -18,6 +18,7 @@ use LarrockCatalog;
 use LarrockFeed;
 use LarrockDiscount;
 use Larrock\Core\Models\Seo;
+use Spatie\MediaLibrary\Media;
 
 /**
  * Larrock\ComponentCategory\Models\Category
@@ -180,13 +181,20 @@ class Category extends Model implements HasMediaConversions
     }
 
     /**
-     * @param $category Category
+     * @param Category $category
      * @param array $list
      * @return array
      */
     protected function iterate_tree($category, $list = [])
     {
-        if($get_data = $category->get_parent()->first()){
+        $cache_key = sha1('iterate_tree'. $category->id);
+        $get_data = Cache::rememberForever($cache_key, function () use ($category) {
+            if($parent = $category->get_parent()->first()){
+                return $parent;
+            }
+            return 'empty';
+        });
+        if($get_data && $get_data !== 'empty'){
             $list[] = $get_data;
             return $this->iterate_tree($get_data, $list);
         }
@@ -213,7 +221,15 @@ class Category extends Model implements HasMediaConversions
      */
     protected function iterate_tree_active($category, $list = [])
     {
-        if($get_data = $category->get_parentActive()->first()){
+        $cache_key = sha1('iterate_treeActive'. $category->id);
+        $get_data = Cache::rememberForever($cache_key, function () use ($category) {
+            if($parent = $category->get_parentActive()->first()){
+                return $parent;
+            }
+            return 'empty';
+        });
+
+        if($get_data && $get_data !== 'empty'){
             $list[] = $get_data;
             return $this->iterate_tree_active($get_data, $list);
         }
@@ -332,6 +348,32 @@ class Category extends Model implements HasMediaConversions
             $renderPlugins = new RenderPlugins($this->description, $this);
             $render = $renderPlugins->renderBlocks()->renderImageGallery()->renderFilesGallery();
             return $render->rendered_html;
+        });
+    }
+
+    /**
+     * Перезаписываем метод из HasMediaTrait
+     * @param string $collectionName
+     * @return mixed
+     */
+    public function loadMedia(string $collectionName)
+    {
+        $cache_key = sha1('loadMediaCache'. $collectionName . $this->id . $this->getConfig()->getName());
+        return Cache::rememberForever($cache_key, function () use ($collectionName) {
+            $collection = $this->exists
+                ? $this->media
+                : collect($this->unAttachedMediaLibraryItems)->pluck('media');
+
+            return $collection
+                ->filter(function (Media $mediaItem) use ($collectionName) {
+                    if ($collectionName == '') {
+                        return true;
+                    }
+
+                    return $mediaItem->collection_name === $collectionName;
+                })
+                ->sortBy('order_column')
+                ->values();
         });
     }
 }
