@@ -11,14 +11,13 @@ use Larrock\Core\Traits\GetSeo;
 use Larrock\Core\Component;
 use LarrockUsers;
 use Nicolaslopezj\Searchable\SearchableTrait;
-use Spatie\MediaLibrary\HasMedia\HasMediaTrait;
-use Spatie\MediaLibrary\HasMedia\Interfaces\HasMediaConversions;
+use Spatie\MediaLibrary\HasMedia\HasMedia;
 use LarrockCategory;
 use LarrockCatalog;
 use LarrockFeed;
 use LarrockDiscount;
 use Larrock\Core\Models\Seo;
-use Spatie\MediaLibrary\Media;
+use Spatie\MediaLibrary\Models\Media;
 
 /**
  * Larrock\ComponentCategory\Models\Category
@@ -64,7 +63,7 @@ use Spatie\MediaLibrary\Media;
  * @property-read mixed $short_wrap
  * @property-read mixed $first_image
  * @property-read mixed $map_coordinate
- * @property-read \Illuminate\Database\Eloquent\Collection|\Spatie\MediaLibrary\Media[] $media
+ * @property-read \Illuminate\Database\Eloquent\Collection|\Spatie\MediaLibrary\Models\Media[] $media
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category whereUserId($value)
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category whereToRss($value)
  * @mixin \Eloquent
@@ -84,16 +83,12 @@ use Spatie\MediaLibrary\Media;
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category whereComponent($value)
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category whereDiscountId($value)
  */
-class Category extends Model implements HasMediaConversions
+class Category extends Model implements HasMedia
 {
     /** @var $this Component */
     protected $config;
-    
-    use SearchableTrait;
-    use HasMediaTrait;
-    use GetFilesAndImages;
-    use GetSeo;
-    use GetLink;
+
+    use SearchableTrait, GetFilesAndImages, GetSeo, GetLink;
 
     public function __construct(array $attributes = [])
     {
@@ -364,16 +359,12 @@ class Category extends Model implements HasMediaConversions
                 ? $this->media
                 : collect($this->unAttachedMediaLibraryItems)->pluck('media');
 
-            return $collection
-                ->filter(function (Media $mediaItem) use ($collectionName) {
-                    if ($collectionName == '') {
+            return $collection->filter(function (Media $mediaItem) use ($collectionName) {
+                    if ($collectionName === '') {
                         return true;
                     }
-
                     return $mediaItem->collection_name === $collectionName;
-                })
-                ->sortBy('order_column')
-                ->values();
+                })->sortBy('order_column')->values();
         });
     }
 }
