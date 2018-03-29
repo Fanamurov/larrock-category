@@ -12,8 +12,7 @@ class AddForeignKeysToCategoryTable extends Migration {
 	 */
 	public function up()
 	{
-		Schema::table('category', function(Blueprint $table)
-		{
+		Schema::table('category', function(Blueprint $table){
 			$table->foreign('user_id')->references('id')->on('users')->onUpdate('RESTRICT')->onDelete('CASCADE');
 		});
 	}
@@ -26,8 +25,7 @@ class AddForeignKeysToCategoryTable extends Migration {
 	 */
 	public function down()
 	{
-		Schema::table('category', function(Blueprint $table)
-		{
+		Schema::table('category', function(Blueprint $table){
 			$table->dropForeign('category_user_id_foreign');
 		});
 	}
