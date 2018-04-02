@@ -33,32 +33,32 @@ class CategoryComponent extends Component
     protected function addRows()
     {
         $row = new FormCategory('parent', 'Родительский раздел');
-        $this->rows['parent'] = $row->setConnect(Category::class, 'getCategory')
-            ->setMaxItems(1)->setDefaultValue(NULL)->setFillable();
+        $this->setRow($row->setConnect(Category::class, 'getCategory')
+            ->setMaxItems(1)->setDefaultValue(NULL)->setFillable());
 
         $row = new FormInput('title', 'Заголовок');
-        $this->rows['title'] = $row->setValid('max:255|required')->setTypo()->setFillable();
+        $this->setRow($row->setValid('max:255|required')->setTypo()->setFillable());
 
         $row = new FormTextarea('short', 'Краткое описание');
-        $this->rows['short'] = $row->setTypo()->setFillable();
+        $this->setRow($row->setTypo()->setFillable());
 
         $row = new FormTextarea('description', 'Полное описание');
-        $this->rows['description'] = $row->setTypo()->setFillable();
+        $this->setRow($row->setTypo()->setFillable());
 
         $row = new FormHidden('component', 'Компонент');
-        $this->rows['component'] = $row->setFillable();
+        $this->setRow($row->setFillable());
 
         $row = new FormHidden('level', 'Уровень вложенности раздела');
-        $this->rows['level'] = $row->setDefaultValue('level')->setFillable();
+        $this->setRow($row->setDefaultValue('level')->setFillable());
 
         $row = new FormCheckbox('sitemap', 'Публиковать ли в sitemap');
-        $this->rows['sitemap'] = $row->setDefaultValue(1)->setTab('seo', 'Seo')->setFillable();
+        $this->setRow($row->setDefaultValue(1)->setTab('seo', 'Seo')->setFillable());
 
         $row = new FormCheckbox('rss', 'Публиковать ли в rss');
-        $this->rows['rss'] = $row->setDefaultValue(0)->setTab('seo', 'Seo')->setFillable();
+        $this->setRow($row->setDefaultValue(0)->setTab('seo', 'Seo')->setFillable());
 
         $row = new FormInput('description_link', 'ID материала Feed для описания');
-        $this->rows['description_link'] = $row->setCssClassGroup('uk-width-1-2 uk-width-1-3@m')->setFillable();
+        $this->setRow($row->setCssClassGroup('uk-width-1-2 uk-width-1-3@m')->setFillable());
 
         return $this;
     }
