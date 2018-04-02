@@ -3,15 +3,15 @@
 namespace Larrock\ComponentCategory;
 
 use Cache;
+use LarrockCategory;
 use Larrock\Core\Component;
+use Larrock\Core\Helpers\Tree;
+use Larrock\ComponentCategory\Models\Category;
+use Larrock\Core\Helpers\FormBuilder\FormInput;
+use Larrock\Core\Helpers\FormBuilder\FormHidden;
 use Larrock\Core\Helpers\FormBuilder\FormCategory;
 use Larrock\Core\Helpers\FormBuilder\FormCheckbox;
-use Larrock\Core\Helpers\FormBuilder\FormHidden;
-use Larrock\Core\Helpers\FormBuilder\FormInput;
 use Larrock\Core\Helpers\FormBuilder\FormTextarea;
-use Larrock\ComponentCategory\Models\Category;
-use LarrockCategory;
-use Larrock\Core\Helpers\Tree;
 
 class CategoryComponent extends Component
 {
@@ -27,6 +27,7 @@ class CategoryComponent extends Component
     protected function addPlugins()
     {
         $this->addPluginImages()->addPluginFiles()->addPluginSeo();
+
         return $this;
     }
 
@@ -34,7 +35,7 @@ class CategoryComponent extends Component
     {
         $row = new FormCategory('parent', 'Родительский раздел');
         $this->setRow($row->setConnect(Category::class, 'getCategory')
-            ->setMaxItems(1)->setDefaultValue(NULL)->setFillable());
+            ->setMaxItems(1)->setDefaultValue(null)->setFillable());
 
         $row = new FormInput('title', 'Заголовок');
         $this->setRow($row->setValid('max:255|required')->setTypo()->setFillable());
@@ -66,40 +67,42 @@ class CategoryComponent extends Component
     public function createSitemap()
     {
         $tree = new Tree();
-        if($activeCategory = $tree->listActiveCategories(LarrockCategory::getModel()->whereActive(1)->whereSitemap(1)->whereParent(NULL)->get())){
-            return LarrockCategory::getModel()->whereActive(1)->whereSitemap(1)->whereIn(LarrockCategory::getTable() .'.id', $activeCategory)->get();
+        if ($activeCategory = $tree->listActiveCategories(LarrockCategory::getModel()->whereActive(1)->whereSitemap(1)->whereParent(null)->get())) {
+            return LarrockCategory::getModel()->whereActive(1)->whereSitemap(1)->whereIn(LarrockCategory::getTable().'.id', $activeCategory)->get();
         }
+
         return [];
     }
 
-    public function search($admin = NULL)
+    public function search($admin = null)
     {
-        return Cache::rememberForever('search'. $this->name. $admin, function() use ($admin){
+        return Cache::rememberForever('search'.$this->name.$admin, function () use ($admin) {
             $data = [];
-            if($admin){
+            if ($admin) {
                 $items = LarrockCategory::getModel()->with(['getParent'])->get();
-            }else{
+            } else {
                 $items = LarrockCategory::getModel()->whereActive(1)->with(['getParentActive'])->get();
             }
-            foreach ($items as $item){
+            foreach ($items as $item) {
                 $data[$item->id]['id'] = $item->id;
                 $data[$item->id]['title'] = $item->title;
                 $data[$item->id]['full_url'] = $item->full_url;
                 $data[$item->id]['component'] = $this->name;
-                $data[$item->id]['category'] = NULL;
-                if($admin){
-                    if($item->getParent){
+                $data[$item->id]['category'] = null;
+                if ($admin) {
+                    if ($item->getParent) {
                         $data[$item->id]['category'] = $item->getParent->title;
                     }
-                }else{
-                    if($item->getParentActive){
+                } else {
+                    if ($item->getParentActive) {
                         $data[$item->id]['category'] = $item->getParentActive->title;
                     }
                 }
             }
-            if(\count($data) === 0){
-                return NULL;
+            if (\count($data) === 0) {
+                return null;
             }
+
             return $data;
         });
     }
