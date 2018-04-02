@@ -3,36 +3,36 @@
 namespace Larrock\ComponentCategory\Models;
 
 use Cache;
-use Illuminate\Database\Eloquent\Model;
-use Larrock\Core\Helpers\Plugins\RenderPlugins;
-use Larrock\Core\Traits\GetFilesAndImages;
-use Larrock\Core\Traits\GetLink;
-use Larrock\Core\Traits\GetSeo;
-use Larrock\Core\Component;
-use LarrockUsers;
-use Nicolaslopezj\Searchable\SearchableTrait;
-use Spatie\MediaLibrary\HasMedia\HasMedia;
-use LarrockCategory;
-use LarrockCatalog;
 use LarrockFeed;
+use LarrockUsers;
+use LarrockCatalog;
+use LarrockCategory;
 use LarrockDiscount;
+use Larrock\Core\Component;
 use Larrock\Core\Models\Seo;
+use Larrock\Core\Traits\GetSeo;
+use Larrock\Core\Traits\GetLink;
 use Spatie\MediaLibrary\Models\Media;
+use Illuminate\Database\Eloquent\Model;
+use Larrock\Core\Traits\GetFilesAndImages;
+use Spatie\MediaLibrary\HasMedia\HasMedia;
+use Nicolaslopezj\Searchable\SearchableTrait;
+use Larrock\Core\Helpers\Plugins\RenderPlugins;
 
 /**
- * Larrock\ComponentCategory\Models\Category
+ * Larrock\ComponentCategory\Models\Category.
  *
- * @property integer $id
+ * @property int $id
  * @property string $title
  * @property string $short
  * @property string $description
  * @property string $type
- * @property integer $parent
- * @property integer $level
+ * @property int $parent
+ * @property int $level
  * @property string $url
- * @property integer $sitemap
- * @property integer $position
- * @property integer $active
+ * @property int $sitemap
+ * @property int $position
+ * @property int $active
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category find($value)
@@ -53,10 +53,10 @@ use Spatie\MediaLibrary\Models\Media;
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category level($level)
  * @property string $forecast_url
  * @property string $map
- * @property integer $user_id
- * @property integer $to_rss
- * @property integer $sharing
- * @property integer $loads
+ * @property int $user_id
+ * @property int $to_rss
+ * @property int $sharing
+ * @property int $loads
  * @property-read mixed $full_url
  * @property-read mixed $class_element
  * @property-read mixed $user
@@ -67,7 +67,7 @@ use Spatie\MediaLibrary\Models\Media;
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category whereUserId($value)
  * @method static \Illuminate\Database\Query\Builder|\Larrock\ComponentCategory\Models\Category whereToRss($value)
  * @mixin \Eloquent
- * @property integer $attached
+ * @property int $attached
  * @property mixed $description_render
  * @property mixed $short_render
  * @property mixed $getDiscount
@@ -113,14 +113,14 @@ class Category extends Model implements HasMedia
     protected $appends = [
         'full_url',
         'class_element',
-        'first_image'
+        'first_image',
     ];
 
     // no need for this, but you can define default searchable columns:
     protected $searchable = [
         'columns' => [
-            'category.title' => 10
-        ]
+            'category.title' => 10,
+        ],
     ];
 
     public function getConfig()
@@ -133,24 +133,27 @@ class Category extends Model implements HasMedia
      */
     public function getGetParentSeoTitleAttribute()
     {
-        if($get_seo = Seo::whereSeoIdConnect($this->parent)->first()){
+        if ($get_seo = Seo::whereSeoIdConnect($this->parent)->first()) {
             return $get_seo->seo_title;
         }
-        if($get_parent = LarrockCategory::getModel()->whereId($this->parent)->first()){
-            if($get_seo = Seo::whereSeoUrlConnect($get_parent->url)->first()){
+        if ($get_parent = LarrockCategory::getModel()->whereId($this->parent)->first()) {
+            if ($get_seo = Seo::whereSeoUrlConnect($get_parent->url)->first()) {
                 return $get_seo->seo_title;
             }
+
             return $get_parent->title;
         }
+
         return $this->title;
     }
 
     public function getDescriptionCategoryOnLinkAttribute()
     {
-        if(config('larrock.catalog.DescriptionCatalogCategoryLink')){
+        if (config('larrock.catalog.DescriptionCatalogCategoryLink')) {
             return LarrockFeed::getModel()->find($this->description_link);
         }
-        return NULL;
+
+        return null;
     }
 
     public function getChild()
@@ -167,11 +170,13 @@ class Category extends Model implements HasMedia
 
     public function getParentTreeAttribute()
     {
-        $key = 'tree_categoryAttr'. $this->id;
-        $list = Cache::rememberForever($key, function() {
+        $key = 'tree_categoryAttr'.$this->id;
+        $list = Cache::rememberForever($key, function () {
             $list[] = $this;
+
             return $this->iterateTree($this, $list);
         });
+
         return $list;
     }
 
@@ -182,30 +187,35 @@ class Category extends Model implements HasMedia
      */
     protected function iterateTree($category, $list = [])
     {
-        $cache_key = sha1('iterate_tree'. $category->id);
+        $cache_key = sha1('iterate_tree'.$category->id);
         $get_data = Cache::rememberForever($cache_key, function () use ($category) {
-            if($parent = $category->getParent()->first()){
+            if ($parent = $category->getParent()->first()) {
                 return $parent;
             }
+
             return 'empty';
         });
-        if($get_data && $get_data !== 'empty'){
+        if ($get_data && $get_data !== 'empty') {
             $list[] = $get_data;
+
             return $this->iterateTree($get_data, $list);
         }
+
         return array_reverse($list);
     }
 
     public function getParentTreeActiveAttribute()
     {
-        $key = 'tree_category_active'. $this->id;
-        $list = Cache::rememberForever($key, function() {
+        $key = 'tree_category_active'.$this->id;
+        $list = Cache::rememberForever($key, function () {
             $list[] = $this;
+
             return $this->iterateTreeActive($this, $list);
         });
-        if(collect($list)->first()->level !== 1){
-            return NULL;
+        if (collect($list)->first()->level !== 1) {
+            return null;
         }
+
         return $list;
     }
 
@@ -216,18 +226,21 @@ class Category extends Model implements HasMedia
      */
     protected function iterateTreeActive($category, $list = [])
     {
-        $cache_key = sha1('iterate_treeActive'. $category->id);
+        $cache_key = sha1('iterate_treeActive'.$category->id);
         $get_data = Cache::rememberForever($cache_key, function () use ($category) {
-            if($parent = $category->getParentActive()->first()){
+            if ($parent = $category->getParentActive()->first()) {
                 return $parent;
             }
+
             return 'empty';
         });
 
-        if($get_data && $get_data !== 'empty'){
+        if ($get_data && $get_data !== 'empty') {
             $list[] = $get_data;
+
             return $this->iterate_tree_active($get_data, $list);
         }
+
         return array_reverse($list);
     }
 
@@ -243,14 +256,15 @@ class Category extends Model implements HasMedia
 
     public function getFullUrlAttribute()
     {
-        return Cache::rememberForever('url_category'. $this->id, function() {
+        return Cache::rememberForever('url_category'.$this->id, function () {
             $url = '';
-            if($this->component){
-                $url = '/'. $this->component;
+            if ($this->component) {
+                $url = '/'.$this->component;
             }
-            foreach ($this->parent_tree as $category){
-                $url .= '/'. $category->url;
+            foreach ($this->parent_tree as $category) {
+                $url .= '/'.$category->url;
             }
+
             return $url;
         });
     }
@@ -309,62 +323,66 @@ class Category extends Model implements HasMedia
     }
 
     /**
-     * Замена тегов плагинов на их данные
+     * Замена тегов плагинов на их данные.
      * @return mixed
      * @throws \Throwable
      */
     public function getShortRenderAttribute()
     {
-        $cache_key = 'ShortRender'. $this->table.'-'. $this->id;
-        if(\Auth::check()){
-            $cache_key .= '-'. \Auth::user()->role->first()->level;
+        $cache_key = 'ShortRender'.$this->table.'-'.$this->id;
+        if (\Auth::check()) {
+            $cache_key .= '-'.\Auth::user()->role->first()->level;
         }
 
-        return Cache::rememberForever($cache_key, function(){
+        return Cache::rememberForever($cache_key, function () {
             $renderPlugins = new RenderPlugins($this->short, $this);
             $render = $renderPlugins->renderBlocks()->renderImageGallery()->renderFilesGallery();
+
             return $render->rendered_html;
         });
     }
 
     /**
-     * Замена тегов плагинов на их данные
+     * Замена тегов плагинов на их данные.
      * @return mixed
      * @throws \Throwable
      */
     public function getDescriptionRenderAttribute()
     {
-        $cache_key = 'DescriptionRender'. $this->table.'-'. $this->id;
-        if(\Auth::check()){
-            $cache_key .= '-'. \Auth::user()->role->first()->level;
+        $cache_key = 'DescriptionRender'.$this->table.'-'.$this->id;
+        if (\Auth::check()) {
+            $cache_key .= '-'.\Auth::user()->role->first()->level;
         }
 
-        return Cache::rememberForever($cache_key, function(){
+        return Cache::rememberForever($cache_key, function () {
             $renderPlugins = new RenderPlugins($this->description, $this);
             $render = $renderPlugins->renderBlocks()->renderImageGallery()->renderFilesGallery();
+
             return $render->rendered_html;
         });
     }
 
     /**
-     * Перезаписываем метод из HasMediaTrait
+     * Перезаписываем метод из HasMediaTrait.
      * @param string $collectionName
      * @return mixed
      */
     public function loadMedia(string $collectionName)
     {
-        $cache_key = sha1('loadMediaCache'. $collectionName . $this->id . $this->getConfig()->getName());
+        $cache_key = sha1('loadMediaCache'.$collectionName.$this->id.$this->getConfig()->getName());
+
         return Cache::rememberForever($cache_key, function () use ($collectionName) {
             $collection = $this->exists
                 ? $this->media
                 : collect($this->unAttachedMediaLibraryItems)->pluck('media');
 
             return $collection->filter(function (Media $mediaItem) use ($collectionName) {
-                    if ($collectionName === '') {
-                        return true;
-                    }
-                    return $mediaItem->collection_name === $collectionName;
-                })->sortBy('order_column')->values();
+                if ($collectionName === '') {
+                    return true;
+                }
+
+                return $mediaItem->collection_name === $collectionName;
+            })->sortBy('order_column')->values();
         });
     }
 }

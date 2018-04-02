@@ -23,13 +23,14 @@ class LarrockComponentCategoryServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton('larrockcategory', function() {
+        $this->app->singleton('larrockcategory', function () {
             $class = config('larrock.components.category', CategoryComponent::class);
+
             return new $class;
         });
 
         $this->publishes([
-            __DIR__.'/../views' => base_path('resources/views/vendor/larrock')
+            __DIR__.'/../views' => base_path('resources/views/vendor/larrock'),
         ], 'views');
     }
 }
