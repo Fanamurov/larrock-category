@@ -8,19 +8,21 @@ use Validator;
 use LarrockFeed;
 use LarrockCatalog;
 use LarrockCategory;
-use Larrock\Core\Component;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Larrock\Core\Traits\ShareMethods;
 use Larrock\Core\Helpers\MessageLarrock;
 use Larrock\Core\Traits\AdminMethodsEdit;
+use Larrock\Core\Traits\AdminMethodsStore;
 use Larrock\Core\Traits\AdminMethodsCreate;
 use Larrock\Core\Traits\AdminMethodsDestroy;
+use Larrock\Core\Events\ComponentItemUpdated;
 use Larrock\ComponentCategory\Models\Category;
+use Larrock\Core\Events\ComponentItemDestroyed;
 
 class AdminCategoryController extends Controller
 {
-    use AdminMethodsEdit, AdminMethodsCreate, AdminMethodsDestroy, ShareMethods;
+    use AdminMethodsEdit, AdminMethodsCreate, AdminMethodsStore, AdminMethodsDestroy, ShareMethods;
 
     protected $current_user;
 
@@ -70,6 +72,7 @@ class AdminCategoryController extends Controller
         }
 
         if ($data->save()) {
+            event(new ComponentItemUpdated($this->config, $data, $request));
             \Cache::flush();
             MessageLarrock::success('Раздел '.$request->input('title').' добавлен');
 
@@ -90,11 +93,6 @@ class AdminCategoryController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), Component::_valid_construct(LarrockCategory::getConfig(), 'update', $id));
-        if ($validator->fails()) {
-            return back()->withInput($request->except('password'))->withErrors($validator);
-        }
-
         $data = LarrockCategory::getModel()->find($id);
         $data->fill($request->all());
         foreach (LarrockCategory::getRows() as $row) {
@@ -116,9 +114,13 @@ class AdminCategoryController extends Controller
             $data->level = 1;
         }
 
+        $validator = Validator::make($data->toArray(), $this->config->getValid($id));
+        if ($validator->fails()) {
+            return back()->withInput($request->except('password'))->withErrors($validator);
+        }
+
         if ($data->save()) {
-            LarrockCategory::actionAttach(LarrockCategory::getConfig(), $data, $request);
-            LarrockCategory::savePluginSeoData($request);
+            event(new ComponentItemUpdated($this->config, $data, $request));
 
             MessageLarrock::success(Lang::get('larrock::apps.update.success', ['name' => $request->input('title')]));
             \Cache::flush();
@@ -166,7 +168,7 @@ class AdminCategoryController extends Controller
 
                 $name = $data->title;
                 $data->clearMediaCollection();
-                LarrockCategory::removeDataPlugins(LarrockCategory::getConfig(), $data);
+                event(new ComponentItemDestroyed($this->config, $data, $request));
 
                 if ($data->delete()) {
                     \Cache::flush();
@@ -197,6 +199,7 @@ class AdminCategoryController extends Controller
                 $this->destroyFeeds($child);
                 LarrockCategory::removeDataPlugins(LarrockCategory::getConfig(), $child);
                 if ($child->delete()) {
+                    event(new ComponentItemDestroyed($this->config, $data, $request));
                     MessageLarrock::success(Lang::get('larrock::apps.delete.success', ['name' => $child_name]));
                 }
             }
@@ -215,6 +218,7 @@ class AdminCategoryController extends Controller
                 $tovar->clearMediaCollection();
                 LarrockCatalog::removeDataPlugins(LarrockCatalog::getConfig(), $tovar);
                 if ($tovar->delete()) {
+                    event(new ComponentItemDestroyed($this->config, $data, $request));
                     MessageLarrock::success(Lang::get('larrock::apps.delete.success', ['name' => $tovar_name]));
                 }
             }
@@ -233,6 +237,7 @@ class AdminCategoryController extends Controller
                 $feed->clearMediaCollection();
                 LarrockFeed::removeDataPlugins(LarrockFeed::getConfig(), $feed);
                 if ($feed->delete()) {
+                    event(new ComponentItemDestroyed($this->config, $data, $request));
                     MessageLarrock::success(Lang::get('larrock::apps.delete.success', ['name' => $feed_name]));
                 }
             }
