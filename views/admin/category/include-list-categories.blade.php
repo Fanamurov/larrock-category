@@ -23,7 +23,7 @@
             </div>
         </td>
         <td>
-            <a class="uk-h4" href="/admin/{{ $app->name }}/{{ $data_value->id }}">{{ $data_value->title }}</a>
+            <a class="uk-h4" href="/admin/{{ $package->name }}/{{ $data_value->id }}">{{ $data_value->title }}</a>
             <br/>
             <a class="link-to-front" target="_blank" href="{{ $data_value->full_url }}">
                 {{ str_limit($data_value->full_url, 35, '...') }}
