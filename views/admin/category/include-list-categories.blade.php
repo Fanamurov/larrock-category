@@ -29,24 +29,50 @@
                 {{ str_limit($data_value->full_url, 35, '...') }}
             </a>
         </td>
-        <td class="row-position uk-visible@s">
-            <input type="text" name="position" value="{{ $data_value->position }}" class="ajax_edit_row uk-form-controls uk-input uk-form-small"
-                   data-row_where="id" data-value_where="{{ $data_value->id }}" data-table="category"
-                   data-toggle="tooltip" data-placement="bottom" title="Вес. Чем больше, тем выше в списках">
-            <i class="uk-sortable-handle uk-icon uk-icon-bars uk-margin-small-right" title="Перенести материал по весу"></i>
-        </td>
-        <td class="row-active uk-visible@s">
-            <div class="uk-button-group btn-group_switch_ajax" role="group" style="width: 100%">
-                <button type="button" class="uk-button uk-button-primary uk-button-small @if($data_value->active === 0) uk-button-outline @endif"
-                        data-row_where="id" data-value_where="{{ $data_value->id }}" data-table="category"
-                        data-row="active" data-value="1" style="width: 50%"
-                        data-toggle="tooltip" data-placement="bottom" title="Включить">on</button>
-                <button type="button" class="uk-button uk-button-danger uk-button-small @if($data_value->active === 1) uk-button-outline @endif"
-                        data-row_where="id" data-value_where="{{ $data_value->id }}" data-table="category"
-                        data-row="active" data-value="0" style="width: 50%"
-                        data-toggle="tooltip" data-placement="bottom" title="Выключить">off</button>
-            </div>
-        </td>
+        @foreach($app_category->rows as $row)
+            @if($row->inTableAdminEditable)
+                @if($row instanceof \Larrock\Core\Helpers\FormBuilder\FormCheckbox)
+                    <td class="row-active uk-visible@s">
+                        <div class="uk-button-group btn-group_switch_ajax" role="group" style="width: 100%">
+                            <button type="button" class="uk-button uk-button-primary uk-button-small
+                                                            @if(!$data_value->{$row->name} || $data_value->{$row->name} === 0) uk-button-outline @endif"
+                                    data-row_where="id" data-value_where="{{ $data_value->id }}" data-table="{{ $app_category->table }}"
+                                    data-row="active" data-value="1" style="width: 50%">on</button>
+                            <button type="button" class="uk-button uk-button-danger uk-button-small
+                                                            @if($data_value->{$row->name} === 1) uk-button-outline @endif"
+                                    data-row_where="id" data-value_where="{{ $data_value->id }}" data-table="{{ $app_category->table }}"
+                                    data-row="active" data-value="0" style="width: 50%">off</button>
+                        </div>
+                    </td>
+                @elseif($row instanceof \Larrock\Core\Helpers\FormBuilder\FormInput)
+                    <td class="uk-visible@s">
+                        <input type="text" value="{{ $data_value->{$row->name} }}" name="{{ $row->name }}"
+                               class="ajax_edit_row form-control uk-input uk-form-small" data-row_where="id"
+                               data-value_where="{{ $data_value->id }}"
+                               data-table="{{ $app_category->table }}">
+                        @if($row->name === 'position')
+                            <i class="uk-sortable-handle uk-icon uk-icon-bars uk-margin-small-right" title="Перенести материал по весу"></i>
+                        @endif
+                    </td>
+                @elseif($row instanceof \Larrock\Core\Helpers\FormBuilder\FormSelect)
+                    <td class="uk-visible@s">
+                        <select class="ajax_edit_row form-control uk-select uk-form-small" data-row_where="id"
+                                data-value_where="{{ $data_value->id }}"
+                                data-table="{{ $app_category->table }}" data-row="{{ $row->name }}">
+                            <option value=""></option>
+                            @foreach($row->getOptions() as $option)
+                                <option @if($option === $data_value->{$row->name}) selected @endif value="{{ $option }}">{{ $option }}</option>
+                            @endforeach
+                        </select>
+                    </td>
+                @endif
+            @endif
+            @if($row->inTableAdmin)
+                <td class="uk-visible@s">
+                    {{ $data_value->{$row->name} }}
+                </td>
+            @endif
+        @endforeach
         <td class="row-edit uk-visible@s">
             <a href="/admin/category/{{ $data_value->id }}/edit" class="uk-button uk-button-default uk-button-small">Свойства</a>
         </td>
